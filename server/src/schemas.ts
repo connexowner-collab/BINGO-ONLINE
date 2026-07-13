@@ -2,16 +2,7 @@
 
 import { z } from 'zod';
 
-export const winModeSchema = z.enum([
-  'QUINA',
-  'COLUNA',
-  'DIAGONAL',
-  'LINHA_QUALQUER',
-  'QUATRO_CANTOS',
-  'X',
-  'MOLDURA',
-  'CARTELA_CHEIA',
-]);
+export const winModeSchema = z.enum(['QUINA', 'COLUNA', 'DIAGONAL', 'QUATRO_CANTOS', 'X', 'MOLDURA', 'CARTELA_CHEIA']);
 
 export const phaseInputSchema = z.object({
   mode: winModeSchema,

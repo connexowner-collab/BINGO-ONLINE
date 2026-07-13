@@ -52,24 +52,25 @@ function dedupeCells(cells: CellPos[]): CellPos[] {
 
 /**
  * Retorna a lista de padrões válidos para um modo de vitória. Um modo pode ter
- * vários padrões alternativos (ex.: QUINA tem 5 linhas possíveis) — basta UM
- * deles fechar para vencer.
+ * vários padrões alternativos (ex.: QUINA aceita qualquer uma das 5 linhas, 5
+ * colunas ou 2 diagonais) — basta UM deles fechar para vencer.
  */
 export function patternsForMode(mode: WinMode): CellPos[][] {
   switch (mode) {
+    // Quina = 5 em qualquer direção (linha, coluna ou diagonal) — é assim que
+    // a maioria dos jogadores entende "quina" na prática.
     case 'QUINA':
-      return ALL_ROWS.map((row) => rowPattern(row));
-    case 'COLUNA':
-      return ALL_COLS.map((col) => colPattern(col));
-    case 'DIAGONAL':
-      return [MAIN_DIAGONAL, ANTI_DIAGONAL];
-    case 'LINHA_QUALQUER':
       return [
         ...ALL_ROWS.map((row) => rowPattern(row)),
         ...ALL_COLS.map((col) => colPattern(col)),
         MAIN_DIAGONAL,
         ANTI_DIAGONAL,
       ];
+    // Modos restritos, para quem quiser uma fase que valha só coluna ou só diagonal.
+    case 'COLUNA':
+      return ALL_COLS.map((col) => colPattern(col));
+    case 'DIAGONAL':
+      return [MAIN_DIAGONAL, ANTI_DIAGONAL];
     case 'QUATRO_CANTOS':
       return [FOUR_CORNERS];
     case 'X':

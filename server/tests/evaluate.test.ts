@@ -70,6 +70,20 @@ describe('distanceForMode / hasWon — QUINA', () => {
   test('sem nenhuma bola, a linha do FREE (linha 2) já parte com distância 4', () => {
     assert.equal(distanceForMode(GRID, new Set(), 'QUINA'), 4);
   });
+
+  test('QUINA fecha por coluna, não só por linha', () => {
+    // Coluna B inteira (1,2,3,4,5), nenhuma linha completa
+    const drawn = new Set([1, 2, 3, 4, 5]);
+    assert.equal(distanceForMode(GRID, drawn, 'QUINA'), 0);
+    assert.equal(hasWon(GRID, drawn, 'QUINA'), true);
+  });
+
+  test('QUINA fecha por diagonal, não só por linha ou coluna', () => {
+    // Diagonal principal: (0,0)=1,(1,1)=17,FREE,(3,3)=49,(4,4)=65
+    const drawn = new Set([1, 17, 49, 65]);
+    assert.equal(distanceForMode(GRID, drawn, 'QUINA'), 0);
+    assert.equal(hasWon(GRID, drawn, 'QUINA'), true);
+  });
 });
 
 describe('distanceForMode — COLUNA', () => {

@@ -3,15 +3,10 @@
 
 export type ColumnLetter = 'B' | 'I' | 'N' | 'G' | 'O';
 
-export type WinMode =
-  | 'QUINA'
-  | 'COLUNA'
-  | 'DIAGONAL'
-  | 'LINHA_QUALQUER'
-  | 'QUATRO_CANTOS'
-  | 'X'
-  | 'MOLDURA'
-  | 'CARTELA_CHEIA';
+// QUINA = 5 em qualquer direção (linha, coluna ou diagonal). COLUNA e
+// DIAGONAL existem à parte para quem quiser restringir uma fase a só um
+// desses formatos especificamente.
+export type WinMode = 'QUINA' | 'COLUNA' | 'DIAGONAL' | 'QUATRO_CANTOS' | 'X' | 'MOLDURA' | 'CARTELA_CHEIA';
 
 export type CardGrid = (number | 'FREE')[][];
 

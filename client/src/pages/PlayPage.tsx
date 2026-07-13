@@ -6,19 +6,9 @@ import { BingoCard } from '../components/play/BingoCard';
 import { WinOverlay } from '../components/play/WinOverlay';
 import { ConnectionBanner } from '../components/play/ConnectionBanner';
 import { RibbonBanner, Cloud, Star } from '../components/decor/Sparkle';
+import { MODE_LABELS } from '../lib/modeLabels';
 
 const EVENT_TITLE = 'BINGO DO ANTHONY';
-
-const MODE_LABELS: Record<string, string> = {
-  QUINA: 'quina',
-  COLUNA: 'coluna',
-  DIAGONAL: 'diagonal',
-  LINHA_QUALQUER: 'linha',
-  QUATRO_CANTOS: 'quatro cantos',
-  X: 'x',
-  MOLDURA: 'moldura',
-  CARTELA_CHEIA: 'cartela cheia',
-};
 
 function joinCodeFromPath(): string {
   const parts = window.location.pathname.split('/').filter(Boolean);
@@ -51,7 +41,9 @@ export function PlayPage() {
   const [progressByCard, setProgressByCard] = useState<Record<string, { marked: number[]; missingForCurrentPhase: number }>>({});
   const [tappedByCard, setTappedByCard] = useState<Record<string, Set<number>>>({});
   const [connected, setConnected] = useState(socket.connected);
-  const [wonEntry, setWonEntry] = useState<{ displayNumber: string; prizeLabel: string } | null>(null);
+  const [wonEntry, setWonEntry] = useState<{ displayNumber: string; prizeLabel: string; modeLabel: string } | null>(
+    null,
+  );
 
   const [highContrast, setHighContrast] = useState(localStorage.getItem('bingo:highContrast') === '1');
   const [largeText, setLargeText] = useState(localStorage.getItem('bingo:largeText') === '1');
@@ -86,7 +78,10 @@ export function PlayPage() {
     function onPhaseWon(payload: { phase: Phase }) {
       setCards((currentCards) => {
         const mine = payload.phase.winners.find((w) => currentCards.some((c) => c.cardId === w.cardId));
-        if (mine) setWonEntry({ displayNumber: mine.displayNumber, prizeLabel: payload.phase.prizeLabel });
+        if (mine) {
+          const modeLabel = MODE_LABELS[payload.phase.mode] ?? payload.phase.mode.toLowerCase();
+          setWonEntry({ displayNumber: mine.displayNumber, prizeLabel: payload.phase.prizeLabel, modeLabel });
+        }
         return currentCards;
       });
     }
@@ -234,7 +229,9 @@ export function PlayPage() {
       className="min-h-screen"
       style={{ background: highContrast ? '#fff' : '#FFF8EA', color: highContrast ? '#000' : '#201B3B' }}
     >
-      {wonEntry && <WinOverlay displayNumber={wonEntry.displayNumber} prizeLabel={wonEntry.prizeLabel} />}
+      {wonEntry && (
+        <WinOverlay displayNumber={wonEntry.displayNumber} prizeLabel={wonEntry.prizeLabel} modeLabel={wonEntry.modeLabel} />
+      )}
 
       <div
         className="flex items-center justify-between px-5 py-4 text-white"

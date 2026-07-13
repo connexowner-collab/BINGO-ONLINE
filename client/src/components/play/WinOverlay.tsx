@@ -3,7 +3,15 @@ import confetti from 'canvas-confetti';
 import { motion } from 'framer-motion';
 import { Cloud, Star } from '../decor/Sparkle';
 
-export function WinOverlay({ displayNumber, prizeLabel }: { displayNumber: string; prizeLabel: string }) {
+export function WinOverlay({
+  displayNumber,
+  prizeLabel,
+  modeLabel,
+}: {
+  displayNumber: string;
+  prizeLabel: string;
+  modeLabel: string;
+}) {
   useEffect(() => {
     confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } });
   }, []);
@@ -31,7 +39,7 @@ export function WinOverlay({ displayNumber, prizeLabel }: { displayNumber: strin
         className="pointer-events-none absolute bottom-14 right-0 h-36 w-auto drop-shadow-[0_10px_12px_rgba(0,0,0,.35)]"
       />
 
-      <div className="text-xl font-extrabold uppercase tracking-[.08em] text-bingoWin">bingo!</div>
+      <div className="text-xl font-extrabold uppercase tracking-[.08em] text-bingoWin">{modeLabel}!</div>
       <div className="font-display text-2xl font-extrabold">MOSTRE ESTA TELA</div>
       <div className="w-full max-w-xs rounded-[20px] bg-white px-5 py-6 text-bingoInk">
         <div className="text-sm font-bold" style={{ color: '#8A7B4E' }}>

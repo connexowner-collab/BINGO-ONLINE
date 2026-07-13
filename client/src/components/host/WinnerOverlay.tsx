@@ -3,17 +3,7 @@ import confetti from 'canvas-confetti';
 import { motion } from 'framer-motion';
 import type { Phase } from '../../lib/types';
 import { Cloud } from '../decor/Sparkle';
-
-const MODE_LABELS: Record<string, string> = {
-  QUINA: 'quina',
-  COLUNA: 'coluna',
-  DIAGONAL: 'diagonal',
-  LINHA_QUALQUER: 'linha',
-  QUATRO_CANTOS: 'quatro cantos',
-  X: 'x',
-  MOLDURA: 'moldura',
-  CARTELA_CHEIA: 'cartela cheia',
-};
+import { MODE_LABELS } from '../../lib/modeLabels';
 
 export function WinnerOverlay({ phase, celebrationSeconds }: { phase: Phase; celebrationSeconds: number }) {
   const [secondsLeft, setSecondsLeft] = useState(celebrationSeconds);

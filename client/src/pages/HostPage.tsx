@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { socket } from '../lib/socket';
 import { bingoAudio, type PreloadProgress } from '../lib/audio';
 import type { Ball, NearWinEntry, Phase, RoomPublicState, RoomSettings, WinMode } from '../lib/types';
+import { WIN_MODE_OPTIONS } from '../lib/modeLabels';
 import { BallDisplay } from '../components/host/BallDisplay';
 import { BoardGrid } from '../components/host/BoardGrid';
 import { NearWinPanel } from '../components/host/NearWinPanel';
@@ -11,17 +12,6 @@ import { AdminDrawer } from '../components/host/AdminDrawer';
 import { Cloud, RibbonBanner, Star } from '../components/decor/Sparkle';
 
 const EVENT_TITLE = 'BINGO DO ANTHONY';
-
-const WIN_MODES: { mode: WinMode; label: string }[] = [
-  { mode: 'QUINA', label: 'Quina' },
-  { mode: 'COLUNA', label: 'Coluna' },
-  { mode: 'DIAGONAL', label: 'Diagonal' },
-  { mode: 'LINHA_QUALQUER', label: 'Linha qualquer' },
-  { mode: 'QUATRO_CANTOS', label: 'Quatro cantos' },
-  { mode: 'X', label: 'X' },
-  { mode: 'MOLDURA', label: 'Moldura' },
-  { mode: 'CARTELA_CHEIA', label: 'Cartela cheia' },
-];
 
 type PhaseDraft = { mode: WinMode; prizeLabel: string };
 type ConnectedPlayer = { name: string; connected: boolean };
@@ -175,7 +165,7 @@ export function HostPage() {
           {phaseDrafts.map((phase, i) => (
             <div key={i} className="rounded-lg bg-bingoNavyLight p-4">
               <div className="flex flex-wrap gap-2">
-                {WIN_MODES.map(({ mode, label }) => {
+                {WIN_MODE_OPTIONS.map(({ mode, label }) => {
                   const selected = phase.mode === mode;
                   return (
                     <button
