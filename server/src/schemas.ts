@@ -25,6 +25,7 @@ export const roomSettingsPartialSchema = z
     maxCardsPerPlayer: z.number().int().min(1).max(4),
     autoMark: z.boolean(),
     celebrationSeconds: z.number().int().min(3).max(60),
+    anunciarVencedorAutomatico: z.boolean(),
     permitirVitoriaRepetida: z.boolean(),
     allowLateJoin: z.boolean(),
     voiceEnabled: z.boolean(),
@@ -51,3 +52,7 @@ export const playerJoinSchema = z.object({
 });
 
 export const emptyPayloadSchema = z.object({}).strict();
+
+export const hostDeclareWinnerSchema = z.object({
+  displayNumber: z.string().min(1).max(10),
+});

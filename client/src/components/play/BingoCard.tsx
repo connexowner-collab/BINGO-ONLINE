@@ -33,50 +33,46 @@ export function BingoCard({
   }
 
   return (
-    <div className="rounded-2xl bg-white p-3 shadow-lg">
-      <div className="mb-2 text-center font-display text-2xl font-extrabold text-bingoNavy">
-        {card.displayNumber}
+    <div className="flex w-full max-w-sm flex-col gap-1.5">
+      <div className="grid grid-cols-5 gap-1.5">
+        {COLUMNS.map((l) => (
+          <div key={l} className="text-center font-display text-[22px] font-extrabold" style={{ color: '#5C8DF2' }}>
+            {l}
+          </div>
+        ))}
       </div>
-      <table className="w-full border-collapse">
-        <thead>
-          <tr>
-            {COLUMNS.map((l) => (
-              <th key={l} className="pb-1 font-display text-lg font-bold text-bingoOrange">
-                {l}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {card.grid.map((row, ri) => (
-            <tr key={ri}>
-              {row.map((cell, ci) => {
-                const isMarked = cell === 'FREE' || (autoMark ? drawnNumbers.has(cell as number) : tappedNumbers.has(cell as number));
-                const isShaking = shakingCell === cell;
-                return (
-                  <td key={ci} className="p-0.5">
-                    <button
-                      type="button"
-                      onClick={() => handleClick(cell)}
-                      className={`flex aspect-square w-full items-center justify-center rounded-lg border-2 font-bold transition-colors ${
-                        largeText ? 'text-xl md:text-2xl' : 'text-base md:text-lg'
-                      } ${
-                        isMarked
-                          ? highContrast
-                            ? 'border-black bg-black text-white'
-                            : 'border-green-600 bg-green-400 text-green-950'
-                          : 'border-bingoNavy/20 bg-bingoNavy/5 text-bingoNavy'
-                      } ${isShaking ? 'animate-shake border-red-500' : ''}`}
-                    >
-                      {isMarked && cell !== 'FREE' ? <>✓ {cell}</> : cell}
-                    </button>
-                  </td>
-                );
-              })}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+
+      {card.grid.map((row, ri) => (
+        <div key={ri} className="grid grid-cols-5 gap-1.5">
+          {row.map((cell, ci) => {
+            const isMarked = cell === 'FREE' || (autoMark ? drawnNumbers.has(cell as number) : tappedNumbers.has(cell as number));
+            const isShaking = shakingCell === cell;
+            return (
+              <button
+                key={ci}
+                type="button"
+                onClick={() => handleClick(cell)}
+                className={`relative flex aspect-square items-center justify-center rounded-xl border-2 font-extrabold transition-colors ${
+                  largeText ? 'text-xl' : 'text-[19px]'
+                } ${isShaking ? 'animate-shake' : ''}`}
+                style={{
+                  background: isMarked ? (highContrast ? '#000' : '#201B3B') : '#fff',
+                  color: isMarked ? '#fff' : '#201B3B',
+                  borderColor: isShaking ? '#FF4D5E' : isMarked ? (highContrast ? '#000' : '#201B3B') : '#EADFC2',
+                }}
+              >
+                {isMarked && cell !== 'FREE' && (
+                  <span
+                    className="absolute rounded-full"
+                    style={{ width: '70%', height: '70%', background: '#F5A623', opacity: 0.35 }}
+                  />
+                )}
+                <span className="relative z-10">{cell === 'FREE' ? 'LIVRE' : isMarked ? `✓${cell}` : cell}</span>
+              </button>
+            );
+          })}
+        </div>
+      ))}
     </div>
   );
 }

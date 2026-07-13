@@ -6,6 +6,7 @@ import type { Server, Socket } from 'socket.io';
 import type { ZodType } from 'zod';
 import {
   hostCreateRoomSchema,
+  hostDeclareWinnerSchema,
   hostRejoinRoomSchema,
   playerJoinSchema,
   roomSettingsPartialSchema,
@@ -39,6 +40,8 @@ export type ClientToServerEvents = {
   'host:updateSettings': (payload: unknown) => void;
   'host:repeatLastBall': (payload: unknown) => void;
   'host:endGame': (payload: unknown) => void;
+  /** Modo "jogador se anuncia" (anunciarVencedorAutomatico = false). */
+  'host:declareWinner': (payload: unknown) => void;
   /** Extensão além da seção 5: permite ao painel recuperar sua sala após reconectar (seção 9). */
   'host:rejoinRoom': (payload: unknown) => void;
   'player:join': (
@@ -153,6 +156,33 @@ function stopAutoTimer(runtime: RoomRuntime): void {
   }
 }
 
+/**
+ * Emite phase:won e agenda o avanço de fase após celebrationSeconds. Usado
+ * tanto pela detecção automática (performDraw) quanto por host:declareWinner
+ * (modo "jogador se anuncia").
+ */
+function triggerCelebration(io: AppServer, runtime: RoomRuntime, roomId: string, phase: Phase, ball: Ball): void {
+  stopAutoTimer(runtime);
+  io.to(roomChannel(roomId)).emit('phase:won', { phase, winners: phase.winners, ball });
+  io.to(roomChannel(roomId)).emit('state:sync', toPublicState(runtime.engine.getRoom()));
+
+  runtime.celebrationTimer = setTimeout(() => {
+    const { nextPhase, finished } = runtime.engine.advancePhase();
+    const updatedRoom = runtime.engine.getRoom();
+
+    if (finished) {
+      io.to(roomChannel(roomId)).emit('game:finished', { report: buildReport(runtime) });
+    } else if (nextPhase) {
+      io.to(roomChannel(roomId)).emit('phase:started', { phase: nextPhase });
+      if (updatedRoom.settings.drawMode === 'AUTO') startAutoTimer(io, runtime, roomId);
+    }
+
+    io.to(roomChannel(roomId)).emit('state:sync', toPublicState(updatedRoom));
+    emitProgressForAllPlayers(io, runtime);
+    void saveRoomSnapshot(updatedRoom);
+  }, runtime.engine.getRoom().settings.celebrationSeconds * 1000);
+}
+
 /** Seção 6: sorteia, avalia e retransmite — usado tanto pelo timer AUTO quanto por host:drawNext. */
 function performDraw(io: AppServer, runtime: RoomRuntime, roomId: string): void {
   const completedPhaseId = runtime.engine.getRoom().currentPhaseId;
@@ -169,29 +199,8 @@ function performDraw(io: AppServer, runtime: RoomRuntime, roomId: string): void 
   void saveRoomSnapshot(room);
 
   if (result.phaseWon) {
-    stopAutoTimer(runtime);
     const completedPhase = room.phases.find((p) => p.id === completedPhaseId)!;
-    io.to(roomChannel(roomId)).emit('phase:won', {
-      phase: completedPhase,
-      winners: completedPhase.winners,
-      ball: result.ball,
-    });
-
-    runtime.celebrationTimer = setTimeout(() => {
-      const { nextPhase, finished } = runtime.engine.advancePhase();
-      const updatedRoom = runtime.engine.getRoom();
-
-      if (finished) {
-        io.to(roomChannel(roomId)).emit('game:finished', { report: buildReport(runtime) });
-      } else if (nextPhase) {
-        io.to(roomChannel(roomId)).emit('phase:started', { phase: nextPhase });
-        if (updatedRoom.settings.drawMode === 'AUTO') startAutoTimer(io, runtime, roomId);
-      }
-
-      io.to(roomChannel(roomId)).emit('state:sync', toPublicState(updatedRoom));
-      emitProgressForAllPlayers(io, runtime);
-      void saveRoomSnapshot(updatedRoom);
-    }, room.settings.celebrationSeconds * 1000);
+    triggerCelebration(io, runtime, roomId, completedPhase, result.ball);
   } else {
     const oneAway = limitNearWinGroup(result.evaluation.oneAway);
     const twoAway = limitNearWinGroup(result.evaluation.twoAway);
@@ -337,6 +346,27 @@ export function registerSocketHandlers(io: AppServer): void {
         totalDrawn: room.drawnBalls.length,
         remaining: room.remainingBalls.length,
       });
+    });
+
+    socket.on('host:declareWinner', (payload) => {
+      const runtime = requireHostRuntime();
+      if (!runtime) return;
+      const parsed = parseOrError(hostDeclareWinnerSchema, payload, socket);
+      if (!parsed) return;
+
+      const lastBall = runtime.engine.getLastBall();
+      if (!lastBall) return sendError(socket, 'INVALID_STATE', 'Nenhuma bola foi sorteada ainda');
+
+      try {
+        runtime.engine.declareWinner(parsed.displayNumber);
+      } catch (err) {
+        return sendError(socket, 'INVALID_STATE', (err as Error).message);
+      }
+
+      const roomId = socket.data.roomId!;
+      const room = runtime.engine.getRoom();
+      const phase = room.phases.find((p) => p.id === room.currentPhaseId)!;
+      triggerCelebration(io, runtime, roomId, phase, lastBall);
     });
 
     socket.on('host:endGame', () => {

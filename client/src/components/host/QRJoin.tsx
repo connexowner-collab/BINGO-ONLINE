@@ -4,10 +4,11 @@ export function QRJoin({ joinCode }: { joinCode: string }) {
   const url = `${window.location.origin}/play/${joinCode}`;
 
   return (
-    <div className="flex flex-col items-center gap-2 rounded-2xl bg-white p-4">
-      <QRCodeSVG value={url} size={128} />
-      <p className="font-display text-sm font-bold text-bingoNavy">Entre em:</p>
-      <p className="text-sm text-bingoNavy/80">{url.replace(/^https?:\/\//, '')}</p>
+    <div className="flex flex-col items-center gap-4">
+      <div className="rounded-[24px] bg-white p-6 shadow-[0_16px_40px_rgba(0,0,0,.35)]">
+        <QRCodeSVG value={url} size={220} />
+      </div>
+      <p className="text-lg font-bold text-white/75">aponte a câmera e entre</p>
     </div>
   );
 }

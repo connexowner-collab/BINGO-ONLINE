@@ -105,4 +105,45 @@ describe('RoomEngine', () => {
     assert.equal(engine.getRoom().status, 'RUNNING');
     assert.notEqual(engine.drawNext(), null);
   });
+
+  test('anunciarVencedorAutomatico=false não celebra sozinho, mas near-win continua', () => {
+    const engine = new RoomEngine([{ mode: 'QUATRO_CANTOS', prizeLabel: 'Prêmio' }], {
+      anunciarVencedorAutomatico: false,
+    });
+    const card = engine.issueCard('p1', 'Ana');
+    engine.start();
+
+    let sawWinnerFlag = false;
+    for (let i = 0; i < 75; i++) {
+      const result = engine.drawNext();
+      if (!result) break;
+      if (result.phaseWon) sawWinnerFlag = true;
+      if (result.evaluation.winners.some((w) => w.cardId === card.cardId)) break;
+    }
+
+    assert.equal(sawWinnerFlag, false, 'não deveria auto-celebrar com anunciarVencedorAutomatico=false');
+    assert.equal(engine.getRoom().status, 'RUNNING');
+  });
+
+  test('declareWinner valida contra as bolas sorteadas antes de aceitar', () => {
+    const engine = new RoomEngine([{ mode: 'QUATRO_CANTOS', prizeLabel: 'Prêmio' }], {
+      anunciarVencedorAutomatico: false,
+    });
+    const card = engine.issueCard('p1', 'Ana');
+    engine.start();
+    engine.drawNext();
+
+    assert.throws(() => engine.declareWinner(card.displayNumber), /ainda não fechou/);
+    assert.throws(() => engine.declareWinner('#999'), /não encontrada/);
+
+    for (let i = 0; i < 75; i++) {
+      const result = engine.drawNext();
+      if (!result) break;
+      if (result.evaluation.winners.some((w) => w.cardId === card.cardId)) break;
+    }
+
+    const { winners } = engine.declareWinner(card.displayNumber);
+    assert.equal(winners[0]!.cardId, card.cardId);
+    assert.equal(engine.getRoom().status, 'CELEBRATING');
+  });
 });

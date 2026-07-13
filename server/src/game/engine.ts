@@ -5,7 +5,7 @@
 import { randomInt } from 'node:crypto';
 import { nanoid } from 'nanoid';
 import { generateUniqueCard, letterForNumber } from './cards.js';
-import { evaluateCardsForMode, type PhaseEvaluation } from './evaluate.js';
+import { distanceForMode, evaluateCardsForMode, type PhaseEvaluation } from './evaluate.js';
 import type { Ball, Card, Phase, PhaseWinner, Room, RoomSettings, WinMode } from '../types.js';
 
 export const DEFAULT_ROOM_SETTINGS: RoomSettings = {
@@ -17,6 +17,7 @@ export const DEFAULT_ROOM_SETTINGS: RoomSettings = {
   // sorteadas, nunca a partir do que o jogador tocou (ver seção 8.2 do spec).
   autoMark: false,
   celebrationSeconds: 12,
+  anunciarVencedorAutomatico: true,
   permitirVitoriaRepetida: true,
   allowLateJoin: true,
   voiceEnabled: true,
@@ -148,6 +149,23 @@ export class RoomEngine {
     return phase;
   }
 
+  /** Marca a fase ativa como concluída e a sala como CELEBRATING. Usado tanto
+   * pela detecção automática quanto pela declaração manual de vencedor. */
+  private completePhase(winningCards: Card[], ballSequence: number): PhaseWinner[] {
+    const phase = this.currentPhase();
+    const winners: PhaseWinner[] = winningCards.map((card) => ({
+      cardId: card.cardId,
+      displayNumber: card.displayNumber,
+      playerName: card.playerName,
+      ballSequence,
+    }));
+    phase.winners = winners;
+    phase.status = 'COMPLETED';
+    for (const w of winners) this.previousWinnerCardIds.add(w.cardId);
+    this.room.status = 'CELEBRATING';
+    return winners;
+  }
+
   /** Emite uma nova cartela para o jogador, respeitando maxCardsPerPlayer. */
   issueCard(playerId: string, playerName: string): Card {
     const existing = this.playerCardIds.get(playerId) ?? [];
@@ -212,17 +230,8 @@ export class RoomEngine {
     const drawnNumbers = new Set(this.room.drawnBalls.map((b) => b.number));
     const evaluation = evaluateCardsForMode(this.eligibleCardsForCurrentPhase(), drawnNumbers, phase.mode);
 
-    if (evaluation.winners.length > 0) {
-      const winners: PhaseWinner[] = evaluation.winners.map((card) => ({
-        cardId: card.cardId,
-        displayNumber: card.displayNumber,
-        playerName: card.playerName,
-        ballSequence: ball.sequence,
-      }));
-      phase.winners = winners;
-      phase.status = 'COMPLETED';
-      for (const w of winners) this.previousWinnerCardIds.add(w.cardId);
-      this.room.status = 'CELEBRATING';
+    if (evaluation.winners.length > 0 && this.room.settings.anunciarVencedorAutomatico) {
+      this.completePhase(evaluation.winners, ball.sequence);
       return { ball, evaluation, phaseWon: true };
     }
 
@@ -232,6 +241,33 @@ export class RoomEngine {
   /** Repete a última bola sorteada (para o host re-falar o número). */
   getLastBall(): Ball | null {
     return this.room.drawnBalls.at(-1) ?? null;
+  }
+
+  /**
+   * Declara manualmente uma cartela vencedora (modo "jogador se anuncia":
+   * `anunciarVencedorAutomatico = false`). O servidor sempre valida que a
+   * cartela realmente fechou o padrão da fase ativa contra as bolas
+   * sorteadas antes de aceitar — nunca confia cegamente no anúncio.
+   */
+  declareWinner(displayNumber: string): { winners: PhaseWinner[] } {
+    if (this.room.status !== 'RUNNING' && this.room.status !== 'PAUSED') {
+      throw new Error('Só é possível declarar um vencedor com o sorteio em andamento ou pausado');
+    }
+
+    const phase = this.currentPhase();
+    const card = this.eligibleCardsForCurrentPhase().find((c) => c.displayNumber === displayNumber);
+    if (!card) {
+      throw new Error(`Cartela ${displayNumber} não encontrada ou não elegível nesta fase`);
+    }
+
+    const drawnNumbers = new Set(this.room.drawnBalls.map((b) => b.number));
+    if (distanceForMode(card.grid, drawnNumbers, phase.mode) !== 0) {
+      throw new Error(`A cartela ${displayNumber} ainda não fechou o padrão ${phase.mode}`);
+    }
+
+    const lastBall = this.getLastBall();
+    const winners = this.completePhase([card], lastBall?.sequence ?? 0);
+    return { winners };
   }
 
   /**

@@ -3,9 +3,22 @@ import { socket } from '../lib/socket';
 import { setupWakeLock } from '../lib/wakeLock';
 import type { Ball, Card, Phase, RoomPublicState } from '../lib/types';
 import { BingoCard } from '../components/play/BingoCard';
-import { ProgressBar } from '../components/play/ProgressBar';
 import { WinOverlay } from '../components/play/WinOverlay';
 import { ConnectionBanner } from '../components/play/ConnectionBanner';
+import { RibbonBanner, Cloud, Star } from '../components/decor/Sparkle';
+
+const EVENT_TITLE = 'BINGO DO ANTHONY';
+
+const MODE_LABELS: Record<string, string> = {
+  QUINA: 'quina',
+  COLUNA: 'coluna',
+  DIAGONAL: 'diagonal',
+  LINHA_QUALQUER: 'linha',
+  QUATRO_CANTOS: 'quatro cantos',
+  X: 'x',
+  MOLDURA: 'moldura',
+  CARTELA_CHEIA: 'cartela cheia',
+};
 
 function joinCodeFromPath(): string {
   const parts = window.location.pathname.split('/').filter(Boolean);
@@ -31,6 +44,7 @@ export function PlayPage() {
   const [joined, setJoined] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [cards, setCards] = useState<Card[]>([]);
+  const [activeCardIdx, setActiveCardIdx] = useState(0);
   const [room, setRoom] = useState<RoomPublicState | null>(null);
   const [drawnNumbers, setDrawnNumbers] = useState<Set<number>>(new Set());
   const [lastBall, setLastBall] = useState<Ball | null>(null);
@@ -154,106 +168,182 @@ export function PlayPage() {
     });
   }
 
+  // --- M1 · Entrada ---
   if (!joined) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-bingoNavy p-6 text-white">
-        <h1 className="font-display text-3xl font-extrabold text-bingoOrange">Entrar no Bingo</h1>
-        {error && <p className="rounded bg-red-900 p-2 text-red-200">{error}</p>}
+      <div
+        className="relative flex min-h-screen flex-col items-center justify-center gap-7 overflow-hidden px-8 text-center"
+        style={{ background: 'linear-gradient(180deg,#5C8DF2 0%,#A9C6F7 30%,#FFF8EA 55%)' }}
+      >
+        <Cloud top={40} left={-40} width={220} height={70} opacity={0.85} />
+        <Cloud top={100} right={-50} width={190} height={64} opacity={0.7} />
+        <Star top={64} left={40} size={18} opacity={0.6} color="#F5A623" />
+        <Star top={130} right={40} size={14} opacity={0.5} color="#F5A623" />
+
+        <RibbonBanner fontSize={26}>{EVENT_TITLE}</RibbonBanner>
+
+        {error && <p className="rounded bg-red-900 px-3 py-2 text-sm text-red-100">{error}</p>}
+
         <input
           value={joinCode}
           onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
           maxLength={6}
-          placeholder="Código da sala"
-          className="w-full max-w-xs rounded-lg bg-white/10 px-4 py-3 text-center text-xl uppercase tracking-widest"
+          placeholder="código da sala"
+          className="w-full max-w-xs rounded-2xl border-2 bg-white px-5 py-4 text-center text-xl font-bold uppercase tracking-widest text-bingoInk"
+          style={{ borderColor: '#EADFC2' }}
         />
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Seu nome"
-          className="w-full max-w-xs rounded-lg bg-white/10 px-4 py-3 text-center text-xl"
+          placeholder="seu nome"
+          className="w-full max-w-xs rounded-2xl border-2 bg-white px-5 py-4 text-center text-xl font-bold text-bingoInk"
+          style={{ borderColor: '#EADFC2' }}
         />
         <button
           onClick={join}
-          className="w-full max-w-xs rounded-xl bg-bingoOrange px-6 py-3 font-display text-xl font-bold text-bingoNavy hover:brightness-95"
+          className="w-full max-w-xs rounded-2xl bg-bingoOrange py-4 font-display text-xl font-extrabold text-bingoInk hover:brightness-95"
         >
-          Entrar
+          Entrar na sala
         </button>
-        <footer className="mt-6 text-xs text-white/30">Bingo recreativo. Sem apostas ou prêmios em dinheiro.</footer>
+
+        <img
+          src="/mascots/mascot-1.png"
+          alt=""
+          className="pointer-events-none absolute bottom-3 left-1 h-24 w-auto drop-shadow-[0_8px_10px_rgba(0,0,0,.3)]"
+        />
+        <img
+          src="/mascots/mascot-3.png"
+          alt=""
+          className="pointer-events-none absolute bottom-3 right-1 h-24 w-auto drop-shadow-[0_8px_10px_rgba(0,0,0,.3)]"
+        />
+
+        <footer className="mt-16 text-xs text-bingoInk/40">Bingo recreativo. Sem apostas ou prêmios em dinheiro.</footer>
       </div>
     );
   }
 
   const currentPhase = room?.phases.find((p) => p.id === room.currentPhaseId);
   const autoMark = room?.settings.autoMark ?? false;
+  const activeCard = cards[activeCardIdx] ?? cards[0];
+  const activeProgress = activeCard ? progressByCard[activeCard.cardId] : undefined;
+  const modeLabel = currentPhase ? (MODE_LABELS[currentPhase.mode] ?? currentPhase.mode.toLowerCase()) : '';
 
+  // --- M2/M4 · Cartela em jogo (ou desconectado) ---
   return (
-    <div className={`min-h-screen p-4 ${highContrast ? 'bg-white text-black' : 'bg-bingoNavy text-white'}`}>
-      <ConnectionBanner connected={connected} />
+    <div
+      className="min-h-screen"
+      style={{ background: highContrast ? '#fff' : '#FFF8EA', color: highContrast ? '#000' : '#201B3B' }}
+    >
       {wonEntry && <WinOverlay displayNumber={wonEntry.displayNumber} prizeLabel={wonEntry.prizeLabel} />}
 
-      <div className="flex items-center justify-between">
-        <h1 className="font-display text-2xl font-bold">Olá, {name}</h1>
-        <div className="flex gap-2 text-sm">
-          <button
-            onClick={() => {
-              const v = !largeText;
-              setLargeText(v);
-              localStorage.setItem('bingo:largeText', v ? '1' : '0');
-            }}
-            className="rounded bg-white/10 px-2 py-1"
-          >
-            A{largeText ? '−' : '+'}
-          </button>
-          <button
-            onClick={() => {
-              const v = !highContrast;
-              setHighContrast(v);
-              localStorage.setItem('bingo:highContrast', v ? '1' : '0');
-            }}
-            className="rounded bg-white/10 px-2 py-1"
-          >
-            ◐ contraste
-          </button>
+      <div
+        className="flex items-center justify-between px-5 py-4 text-white"
+        style={{ background: '#201B3B', opacity: connected ? 1 : 0.6 }}
+      >
+        <div className="flex items-center gap-2.5">
+          <img src="/mascots/mascot-1.png" alt="" className="h-10 w-auto" />
+          <div className="num text-lg font-extrabold">CARTELA {activeCard?.displayNumber ?? '—'}</div>
+        </div>
+        <div className="font-display text-3xl font-extrabold" style={{ color: connected ? '#F5A623' : 'rgba(245,166,35,.3)' }}>
+          {lastBall ? `${lastBall.letter}${lastBall.number}` : '—'}
         </div>
       </div>
 
-      <p className="mt-1 text-sm opacity-70">
-        Fase atual: {currentPhase?.mode} · Prêmio: {currentPhase?.prizeLabel}
-      </p>
-
-      <div className="mt-3">
-        <ProgressBar lastBall={lastBall} missing={progressByCard[cards[0]?.cardId ?? '']?.missingForCurrentPhase ?? null} />
-      </div>
-
-      {!autoMark && (
-        <p className="mt-2 text-center text-sm opacity-70">Toque nos números sorteados para marcar sua cartela.</p>
+      {cards.length > 1 && (
+        <div className="flex gap-2 px-4 pt-3">
+          {cards.map((c, i) => {
+            const selected = i === activeCardIdx;
+            return (
+              <button
+                key={c.cardId}
+                onClick={() => setActiveCardIdx(i)}
+                className="flex-1 rounded-[9px] py-2 text-center text-sm font-extrabold"
+                style={{ background: selected ? '#201B3B' : '#F1E9D2', color: selected ? '#fff' : '#8A7B4E' }}
+              >
+                {c.displayNumber}
+              </button>
+            );
+          })}
+        </div>
       )}
 
-      <div className="mt-4 flex flex-col items-center gap-6">
-        {cards.map((card) => (
+      <ConnectionBanner connected={connected} />
+
+      <div className="mt-2.5 py-3 text-center font-display text-xl font-extrabold text-white" style={{ background: '#5C8DF2' }}>
+        {activeProgress ? `Faltam ${activeProgress.missingForCurrentPhase} números para a ${modeLabel}` : `Jogando ${modeLabel}`}
+      </div>
+
+      {!autoMark && connected && (
+        <p className="px-4 pt-3 text-center text-sm opacity-70">Toque nos números sorteados para marcar sua cartela.</p>
+      )}
+
+      <div className="flex flex-col items-center gap-6 p-4" style={{ opacity: connected ? 1 : 0.4 }}>
+        {activeCard && (
           <BingoCard
-            key={card.cardId}
-            card={card}
+            key={activeCard.cardId}
+            card={activeCard}
             drawnNumbers={drawnNumbers}
             autoMark={autoMark}
-            tappedNumbers={tappedByCard[card.cardId] ?? new Set()}
-            onToggleTap={(n) => toggleTap(card.cardId, n)}
+            tappedNumbers={tappedByCard[activeCard.cardId] ?? new Set()}
+            onToggleTap={(n) => toggleTap(activeCard.cardId, n)}
             highContrast={highContrast}
             largeText={largeText}
           />
-        ))}
+        )}
       </div>
 
       {(room?.settings.maxCardsPerPlayer ?? 1) > cards.length && (
         <button
           onClick={() => socket.emit('player:requestExtraCard', {})}
-          className="mx-auto mt-4 block rounded-lg bg-white/10 px-4 py-2 hover:bg-white/20"
+          className="mx-auto mb-4 block rounded-lg px-4 py-2"
+          style={{ background: 'rgba(32,27,59,.08)' }}
         >
           + cartela extra
         </button>
       )}
 
-      <footer className="mt-8 text-center text-xs opacity-40">Bingo recreativo. Sem apostas ou prêmios em dinheiro.</footer>
+      <div className="flex items-center justify-center gap-3 border-t px-4 py-3.5" style={{ borderColor: '#EADFC2' }}>
+        <button
+          onClick={() => {
+            const v = !largeText;
+            setLargeText(v);
+            localStorage.setItem('bingo:largeText', v ? '1' : '0');
+          }}
+          className="text-sm font-bold"
+          style={{ color: '#8A7B4E' }}
+        >
+          fonte ampliada
+        </button>
+        <span
+          className="relative rounded-full"
+          style={{ width: 40, height: 24, background: largeText ? '#F5A623' : '#EADFC2' }}
+          onClick={() => {
+            const v = !largeText;
+            setLargeText(v);
+            localStorage.setItem('bingo:largeText', v ? '1' : '0');
+          }}
+        >
+          <span
+            className="absolute top-[2px] rounded-full bg-white transition-all"
+            style={{ width: 20, height: 20, left: largeText ? 18 : 2 }}
+          />
+        </span>
+        <button
+          onClick={() => {
+            const v = !highContrast;
+            setHighContrast(v);
+            localStorage.setItem('bingo:highContrast', v ? '1' : '0');
+          }}
+          className="ml-4 text-sm font-bold"
+          style={{ color: '#8A7B4E' }}
+        >
+          ◐ alto contraste
+        </button>
+      </div>
+
+      <footer className="pb-6 pt-2 text-center text-xs" style={{ color: '#9A927E' }}>
+        Bingo recreativo. Sem apostas ou prêmios em dinheiro.
+      </footer>
     </div>
   );
 }

@@ -2,6 +2,18 @@ import { useEffect, useRef, useState } from 'react';
 import confetti from 'canvas-confetti';
 import { motion } from 'framer-motion';
 import type { Phase } from '../../lib/types';
+import { Cloud } from '../decor/Sparkle';
+
+const MODE_LABELS: Record<string, string> = {
+  QUINA: 'quina',
+  COLUNA: 'coluna',
+  DIAGONAL: 'diagonal',
+  LINHA_QUALQUER: 'linha',
+  QUATRO_CANTOS: 'quatro cantos',
+  X: 'x',
+  MOLDURA: 'moldura',
+  CARTELA_CHEIA: 'cartela cheia',
+};
 
 export function WinnerOverlay({ phase, celebrationSeconds }: { phase: Phase; celebrationSeconds: number }) {
   const [secondsLeft, setSecondsLeft] = useState(celebrationSeconds);
@@ -27,35 +39,53 @@ export function WinnerOverlay({ phase, celebrationSeconds }: { phase: Phase; cel
   }, [phase.id, celebrationSeconds]);
 
   const isTie = phase.winners.length > 1;
+  const modeLabel = MODE_LABELS[phase.mode] ?? phase.mode.toLowerCase();
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-bingoNavy/95 p-6 text-center"
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-5 overflow-hidden text-center text-white"
+      style={{ background: 'linear-gradient(180deg,#5C8DF2 0%,#3E6FD9 22%,#201B3B 50%)' }}
     >
-      <motion.h1
+      <Cloud top={20} left={-60} width={300} height={96} opacity={0.7} />
+      <Cloud top={70} right={-70} width={260} height={86} opacity={0.55} />
+
+      <img
+        src="/mascots/mascot-1.png"
+        alt=""
+        className="pointer-events-none absolute bottom-10 left-6 h-40 w-auto drop-shadow-[0_20px_24px_rgba(0,0,0,.4)] md:h-64"
+      />
+      <img
+        src="/mascots/mascot-3.png"
+        alt=""
+        className="pointer-events-none absolute bottom-10 right-6 h-40 w-auto drop-shadow-[0_20px_24px_rgba(0,0,0,.4)] md:h-64"
+      />
+
+      <motion.div
         initial={{ scale: 0.5 }}
         animate={{ scale: 1 }}
         transition={{ type: 'spring', stiffness: 200 }}
-        className="font-display text-6xl font-extrabold text-bingoOrange md:text-8xl"
+        className="text-2xl font-extrabold uppercase tracking-[.1em] text-bingoWin md:text-3xl"
       >
-        BINGO! 🎉
-      </motion.h1>
-      <p className="mt-2 font-display text-xl text-white/80">Prêmio: {phase.prizeLabel}</p>
+        {modeLabel}! {isTie && `empate entre ${phase.winners.length} cartelas`}
+      </motion.div>
 
-      <div className={`mt-8 grid gap-4 ${isTie ? 'grid-cols-2 md:grid-cols-3' : 'grid-cols-1'}`}>
+      <div className={`flex flex-wrap justify-center gap-14 ${isTie ? '' : ''}`}>
         {phase.winners.map((w) => (
-          <div key={w.cardId} className="rounded-2xl bg-white/10 px-8 py-4">
-            <div className="font-display text-3xl font-extrabold text-white md:text-5xl">{w.displayNumber}</div>
-            <div className="text-lg text-white/70 md:text-2xl">{w.playerName}</div>
+          <div key={w.cardId} className="font-display font-extrabold leading-tight text-white">
+            <div className={isTie ? 'text-3xl md:text-5xl' : 'text-4xl md:text-7xl'}>CARTELA {w.displayNumber}</div>
+            <div className={isTie ? 'text-xl md:text-3xl' : 'text-2xl md:text-4xl'}>{w.playerName.toUpperCase()}</div>
           </div>
         ))}
       </div>
 
-      {isTie && <p className="mt-4 text-white/60">Empate! Mais de uma cartela fechou na mesma bola.</p>}
-
-      <p className="mt-10 text-white/50">Próxima fase em {secondsLeft}s…</p>
+      <p className="mt-2 text-lg font-bold text-white/70 md:text-2xl">
+        Prêmio: {phase.prizeLabel}
+      </p>
+      <p className="text-base font-bold text-white/70 md:text-xl">
+        Próxima fase em <span className="num font-extrabold text-bingoOrange">{secondsLeft}s</span>…
+      </p>
     </motion.div>
   );
 }

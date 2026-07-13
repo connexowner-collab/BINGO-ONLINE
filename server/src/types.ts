@@ -58,6 +58,10 @@ export type RoomSettings = {
   maxCardsPerPlayer: number; // default 1, range 1-4
   autoMark: boolean; // default false — jogador marca manualmente, servidor valida de qualquer forma
   celebrationSeconds: number; // default 12
+  // Quando false, o servidor continua calculando vitória e near-win
+  // normalmente, mas não entra em CELEBRATING sozinho — o jogador se
+  // anuncia (bingo físico) e o host confirma via host:declareWinner.
+  anunciarVencedorAutomatico: boolean; // default true
   permitirVitoriaRepetida: boolean; // default true
   allowLateJoin: boolean; // default true
   voiceEnabled: boolean; // default true

@@ -13,6 +13,7 @@ export type ClientToServerEvents = {
   'host:updateSettings': (payload: unknown) => void;
   'host:repeatLastBall': (payload: Record<string, never>) => void;
   'host:endGame': (payload: Record<string, never>) => void;
+  'host:declareWinner': (payload: { displayNumber: string }) => void;
   'host:rejoinRoom': (payload: { roomId: string }) => void;
   'player:join': (
     payload: { joinCode: string; name: string; playerId?: string },

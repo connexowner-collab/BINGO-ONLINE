@@ -55,6 +55,7 @@ export type RoomSettings = {
   maxCardsPerPlayer: number;
   autoMark: boolean;
   celebrationSeconds: number;
+  anunciarVencedorAutomatico: boolean;
   permitirVitoriaRepetida: boolean;
   allowLateJoin: boolean;
   voiceEnabled: boolean;
