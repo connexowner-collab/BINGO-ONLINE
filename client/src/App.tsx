@@ -18,10 +18,6 @@ function LandingPage() {
 
       <RibbonBanner>{EVENT_TITLE}</RibbonBanner>
 
-      <p className="max-w-sm text-white/70">
-        Bingo ao vivo — painel de sorteio numa tela grande e cartelas no celular de cada jogador.
-      </p>
-
       <a
         href="/host"
         className="w-64 rounded-xl bg-bingoOrange px-6 py-4 font-display text-lg font-extrabold text-bingoInk hover:brightness-95"
@@ -44,10 +40,6 @@ function LandingPage() {
         alt=""
         className="pointer-events-none absolute bottom-4 right-2 h-40 w-auto drop-shadow-[0_20px_24px_rgba(0,0,0,.4)] md:h-56"
       />
-
-      <footer className="relative z-10 mt-20 text-xs text-white/40">
-        Bingo recreativo. Sem apostas ou prêmios em dinheiro.
-      </footer>
     </div>
   );
 }

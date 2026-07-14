@@ -211,8 +211,6 @@ export function PlayPage() {
           alt=""
           className="pointer-events-none absolute bottom-3 right-1 h-24 w-auto drop-shadow-[0_8px_10px_rgba(0,0,0,.3)]"
         />
-
-        <footer className="mt-16 text-xs text-bingoInk/40">Bingo recreativo. Sem apostas ou prêmios em dinheiro.</footer>
       </div>
     );
   }
@@ -337,10 +335,6 @@ export function PlayPage() {
           ◐ alto contraste
         </button>
       </div>
-
-      <footer className="pb-6 pt-2 text-center text-xs" style={{ color: '#9A927E' }}>
-        Bingo recreativo. Sem apostas ou prêmios em dinheiro.
-      </footer>
     </div>
   );
 }

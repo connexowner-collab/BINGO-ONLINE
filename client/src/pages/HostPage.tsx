@@ -254,8 +254,6 @@ export function HostPage() {
         >
           Criar sala
         </button>
-
-        <footer className="mt-10 text-xs text-white/30">Bingo recreativo. Sem apostas ou prêmios em dinheiro.</footer>
       </div>
     );
   }
@@ -364,10 +362,6 @@ export function HostPage() {
           alt=""
           className="pointer-events-none absolute bottom-4 right-2 h-40 w-auto drop-shadow-[0_20px_24px_rgba(0,0,0,.4)] md:h-56"
         />
-
-        <footer className="z-10 mb-4 mt-auto pt-24 text-center text-sm text-white/40">
-          Bingo recreativo. Sem apostas ou prêmios em dinheiro.
-        </footer>
       </div>
     );
   }
@@ -415,8 +409,6 @@ export function HostPage() {
             Exportar CSV
           </button>
         </div>
-
-        <footer className="mt-8 text-xs text-white/30">Bingo recreativo. Sem apostas ou prêmios em dinheiro.</footer>
       </div>
     );
   }
