@@ -53,7 +53,9 @@ export function Cloud({
   opacity?: number;
 }) {
   return (
-    <div
+    <img
+      src="/decor/cloud.png"
+      alt=""
       style={{
         position: 'absolute',
         top,
@@ -61,8 +63,7 @@ export function Cloud({
         right,
         width,
         height,
-        background: '#fff',
-        borderRadius: 999,
+        objectFit: 'contain',
         opacity,
       }}
     />
