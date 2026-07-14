@@ -16,6 +16,21 @@ const EVENT_TITLE = 'BINGO DO ANTHONY';
 type PhaseDraft = { mode: WinMode; prizeLabel: string };
 type ConnectedPlayer = { name: string; connected: boolean };
 
+// Espelha server/src/game/engine.ts DEFAULT_ROOM_SETTINGS — usado só como
+// ponto de partida do formulário de criação de sala.
+const DEFAULT_DRAFT_SETTINGS: RoomSettings = {
+  drawMode: 'AUTO',
+  intervalSeconds: 6,
+  maxCardsPerPlayer: 1,
+  autoMark: false,
+  celebrationSeconds: 12,
+  anunciarVencedorAutomatico: true,
+  permitirVitoriaRepetida: true,
+  allowLateJoin: true,
+  voiceEnabled: true,
+  voiceRepeat: true,
+};
+
 export function HostPage() {
   const [joinCode, setJoinCode] = useState<string | null>(null);
   const [room, setRoom] = useState<RoomPublicState | null>(null);
@@ -30,8 +45,7 @@ export function HostPage() {
   }>({ oneAway: [], twoAway: [], oneAwayExtraCount: 0, twoAwayExtraCount: 0 });
   const [players, setPlayers] = useState<ConnectedPlayer[]>([]);
   const [phaseDrafts, setPhaseDrafts] = useState<PhaseDraft[]>([{ mode: 'QUINA', prizeLabel: 'Prêmio 1' }]);
-  const [intervalSeconds, setIntervalSeconds] = useState(6);
-  const [drawMode, setDrawMode] = useState<'AUTO' | 'MANUAL'>('AUTO');
+  const [draftSettings, setDraftSettings] = useState<RoomSettings>(DEFAULT_DRAFT_SETTINGS);
   const [error, setError] = useState<string | null>(null);
   const [winnersBanner, setWinnersBanner] = useState<Phase | null>(null);
   const [winningCards, setWinningCards] = useState<Card[]>([]);
@@ -119,10 +133,14 @@ export function HostPage() {
   }, [room?.settings.voiceRepeat]);
 
   function createRoom() {
-    socket.emit('host:createRoom', { settings: { drawMode, intervalSeconds }, phases: phaseDrafts }, (res) => {
+    socket.emit('host:createRoom', { settings: draftSettings, phases: phaseDrafts }, (res) => {
       if (res.ok) setJoinCode(res.joinCode);
       else setError(res.error);
     });
+  }
+
+  function updateDraftSettings(partial: Partial<RoomSettings>) {
+    setDraftSettings((prev) => ({ ...prev, ...partial }));
   }
 
   function updateSettings(partial: Partial<RoomSettings>) {
@@ -186,11 +204,16 @@ export function HostPage() {
   if (!room) {
     return (
       <div className="min-h-screen bg-bingoNavy p-6 text-white md:p-10">
-        <h1 className="font-display text-3xl font-extrabold text-bingoOrange">Painel de Sorteio</h1>
-        <p className="mt-1 text-white/60">
-          Configure as fases e crie a sala. Você pode jogar só com o sorteio automático — cartelas digitais são
-          opcionais, dá pra usar cartelas físicas de papel.
-        </p>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h1 className="font-display text-3xl font-extrabold text-bingoOrange">Painel de Sorteio</h1>
+            <p className="mt-1 text-white/60">
+              Configure as fases e crie a sala. Você pode jogar só com o sorteio automático — cartelas digitais são
+              opcionais, dá pra usar cartelas físicas de papel.
+            </p>
+          </div>
+          <AdminDrawer settings={draftSettings} onUpdateSettings={updateDraftSettings} />
+        </div>
         {error && <p className="mt-2 rounded bg-red-900 p-2 text-red-200">{error}</p>}
 
         <h2 className="mt-6 font-display text-xl font-bold">Fases</h2>
@@ -254,32 +277,36 @@ export function HostPage() {
             {(['AUTO', 'MANUAL'] as const).map((mode) => (
               <button
                 key={mode}
-                onClick={() => setDrawMode(mode)}
+                onClick={() => updateDraftSettings({ drawMode: mode })}
                 className="rounded-[9px] px-4 py-2 text-[15px] font-bold"
                 style={{
-                  background: drawMode === mode ? '#F5A623' : 'rgba(255,255,255,.06)',
-                  color: drawMode === mode ? '#201B3B' : '#fff',
-                  border: `2px solid ${drawMode === mode ? '#F5A623' : 'rgba(255,255,255,.15)'}`,
+                  background: draftSettings.drawMode === mode ? '#F5A623' : 'rgba(255,255,255,.06)',
+                  color: draftSettings.drawMode === mode ? '#201B3B' : '#fff',
+                  border: `2px solid ${draftSettings.drawMode === mode ? '#F5A623' : 'rgba(255,255,255,.15)'}`,
                 }}
               >
                 {mode === 'AUTO' ? 'Automático (sorteia sozinho)' : 'Manual (eu clico pra gerar cada número)'}
               </button>
             ))}
           </div>
-          {drawMode === 'AUTO' && (
+          {draftSettings.drawMode === 'AUTO' && (
             <label className="flex items-center gap-2">
               Intervalo (s):
               <input
                 type="number"
                 min={3}
                 max={20}
-                value={intervalSeconds}
-                onChange={(e) => setIntervalSeconds(Number(e.target.value))}
+                value={draftSettings.intervalSeconds}
+                onChange={(e) => updateDraftSettings({ intervalSeconds: Number(e.target.value) })}
                 className="w-16 rounded bg-white/10 px-2 py-1"
               />
             </label>
           )}
         </div>
+        <p className="mt-2 text-sm text-white/50">
+          Use o botão ⚙️ Admin acima para ajustar marcação automática, voz, entrada tardia e as demais opções antes de
+          criar a sala.
+        </p>
 
         <button
           onClick={createRoom}
@@ -536,9 +563,11 @@ export function HostPage() {
 
       {error && <p className="relative z-10 mx-6 mt-2 rounded bg-red-900 p-2 text-red-200 md:mx-10">{error}</p>}
 
-      <div className="relative z-10 mt-8 flex flex-wrap items-start justify-center gap-8 px-6 md:px-10">
-        <BallDisplay ball={lastBall} trail={drawnBalls.slice(-5, -1).reverse()} />
-        <BoardGrid drawnNumbers={drawnNumbers} currentNumber={lastBall?.number ?? null} />
+      <div className="relative z-10 mt-8 grid items-start gap-8 px-6 md:grid-cols-[1fr_360px] md:px-10">
+        <div className="flex flex-wrap items-start justify-center gap-8">
+          <BallDisplay ball={lastBall} trail={drawnBalls.slice(-5, -1).reverse()} />
+          <BoardGrid drawnNumbers={drawnNumbers} currentNumber={lastBall?.number ?? null} />
+        </div>
         <NearWinPanel {...nearWin} />
       </div>
 

@@ -82,17 +82,38 @@ class BingoAudioController {
     this.unlocked = true;
   }
 
-  private playClone(audio: HTMLAudioElement): Promise<void> {
+  /** Token da chamada de playBall em andamento — usado para cancelar repetições
+   * de um número que já foi superado por um sorteio mais novo (ver playBall). */
+  private currentToken = 0;
+  private activeClone: HTMLAudioElement | null = null;
+
+  /** Interrompe imediatamente qualquer áudio/fala do número anterior. */
+  private stopCurrent(): void {
+    if (this.activeClone) {
+      this.activeClone.pause();
+      this.activeClone.currentTime = 0;
+      this.activeClone = null;
+    }
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+  }
+
+  private playClone(audio: HTMLAudioElement, token: number): Promise<void> {
     return new Promise((resolve) => {
+      if (token !== this.currentToken) return resolve(); // já foi superado antes de começar
       const clone = audio.cloneNode(true) as HTMLAudioElement;
-      clone.addEventListener('ended', () => resolve(), { once: true });
-      clone.play().catch(() => resolve());
+      this.activeClone = clone;
+      const finish = () => {
+        if (this.activeClone === clone) this.activeClone = null;
+        resolve();
+      };
+      clone.addEventListener('ended', finish, { once: true });
+      clone.play().catch(finish);
     });
   }
 
-  private speak(text: string, rate = 0.85): Promise<void> {
+  private speak(text: string, rate: number, token: number): Promise<void> {
     return new Promise((resolve) => {
-      if (!('speechSynthesis' in window)) {
+      if (!('speechSynthesis' in window) || token !== this.currentToken) {
         resolve();
         return;
       }
@@ -105,28 +126,41 @@ class BingoAudioController {
     });
   }
 
+  /**
+   * Fala a bola sorteada. Se uma bola mais nova for sorteada antes da fala
+   * (ou da repetição) terminar, a anterior é cortada na hora e nunca repete
+   * — sem isso, sorteios rápidos deixavam vários números se sobrepondo.
+   */
   async playBall(ball: { number: number; letter: string }, repeat: boolean): Promise<void> {
+    const token = ++this.currentToken;
+    this.stopCurrent();
+
     const audio = this.ballAudio.get(ball.number);
     const text = `${ball.letter}, ${ball.number}`;
 
     if (audio && !this.fallbackMode) {
-      await this.playClone(audio);
-      if (repeat) {
+      await this.playClone(audio, token);
+      if (repeat && token === this.currentToken) {
         await wait(700);
-        await this.playClone(audio);
+        if (token === this.currentToken) await this.playClone(audio, token);
       }
     } else {
-      await this.speak(text);
-      if (repeat) {
+      await this.speak(text, 0.85, token);
+      if (repeat && token === this.currentToken) {
         await wait(300);
-        await this.speak(text);
+        if (token === this.currentToken) await this.speak(text, 0.85, token);
       }
     }
   }
 
   playSfx(name: 'win' | 'tick' | 'phase-start'): void {
     const audio = this.sfxAudio.get(name);
-    if (audio && !this.fallbackMode) void this.playClone(audio);
+    // Efeitos sonoros tocam por conta própria — usa clone direto (sem token),
+    // não competem com o cancelamento da voz das bolas.
+    if (audio && !this.fallbackMode) {
+      const clone = audio.cloneNode(true) as HTMLAudioElement;
+      void clone.play().catch(() => undefined);
+    }
   }
 }
 

@@ -39,7 +39,7 @@ export function NearWinPanel({
   ];
 
   return (
-    <div className="flex w-[400px] flex-col gap-3.5 rounded-[18px] border-2 border-bingoAlert bg-bingoNavyLight p-5">
+    <div className="flex w-full max-w-[400px] flex-col gap-3.5 rounded-[18px] border-2 border-bingoAlert bg-bingoNavyLight p-5 md:mx-0 mx-auto">
       <div className="text-[18px] font-extrabold uppercase tracking-[.06em] text-bingoAlert">quase lá</div>
 
       {rows.length === 0 ? (
