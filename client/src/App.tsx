@@ -22,20 +22,12 @@ function LandingPage() {
         Bingo ao vivo — painel de sorteio numa tela grande e cartelas no celular de cada jogador.
       </p>
 
-      <div className="flex flex-col items-center gap-4">
-        <a
-          href="/host"
-          className="w-64 rounded-xl bg-bingoOrange px-6 py-4 font-display text-lg font-extrabold text-bingoInk hover:brightness-95"
-        >
-          🎙 Painel de sorteio
-        </a>
-        <a
-          href="/play"
-          className="w-64 rounded-xl bg-white/10 px-6 py-4 font-display text-lg font-extrabold text-white hover:bg-white/20"
-        >
-          📱 Entrar como jogador
-        </a>
-      </div>
+      <a
+        href="/host"
+        className="w-64 rounded-xl bg-bingoOrange px-6 py-4 font-display text-lg font-extrabold text-bingoInk hover:brightness-95"
+      >
+        🎙 Painel de sorteio
+      </a>
 
       <img
         src="/mascots/mascot-1.png"
