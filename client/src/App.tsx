@@ -1,6 +1,7 @@
 import { HostPage } from './pages/HostPage';
 import { PlayPage } from './pages/PlayPage';
 import { Cloud, RibbonBanner, Star } from './components/decor/Sparkle';
+import { LoginGate } from './components/auth/LoginGate';
 
 const EVENT_TITLE = 'BINGO DO ANTHONY';
 
@@ -47,8 +48,20 @@ function LandingPage() {
 export function App() {
   const path = window.location.pathname;
 
+  // Jogadores entram direto pelo QR (/play/<joinCode>) — não passam pela
+  // senha do site, que só protege a tela inicial e o painel de sorteio.
   if (path.startsWith('/play')) return <PlayPage />;
-  if (path.startsWith('/host')) return <HostPage />;
+  if (path.startsWith('/host')) {
+    return (
+      <LoginGate>
+        <HostPage />
+      </LoginGate>
+    );
+  }
 
-  return <LandingPage />;
+  return (
+    <LoginGate>
+      <LandingPage />
+    </LoginGate>
+  );
 }

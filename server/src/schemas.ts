@@ -31,6 +31,9 @@ export const hostCreateRoomSchema = z.object({
 
 export const hostRejoinRoomSchema = z.object({
   roomId: z.string().min(1),
+  // roomId sozinho não é secreto (vai pro client em todo state:sync) — o
+  // hostSecret é o que de fato prova que este socket é o host da sala.
+  hostSecret: z.string().min(1),
 });
 
 export const playerJoinSchema = z.object({

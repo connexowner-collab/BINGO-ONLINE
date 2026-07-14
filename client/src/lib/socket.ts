@@ -4,7 +4,9 @@ import type { Ball, Card, NearWinEntry, Phase, PhaseWinner, RoomPublicState, Win
 export type ClientToServerEvents = {
   'host:createRoom': (
     payload: unknown,
-    ack?: (res: { ok: true; roomId: string; joinCode: string } | { ok: false; error: string }) => void,
+    ack?: (
+      res: { ok: true; roomId: string; joinCode: string; hostSecret: string } | { ok: false; error: string },
+    ) => void,
   ) => void;
   'host:startGame': (payload: Record<string, never>) => void;
   'host:drawNext': (payload: Record<string, never>) => void;
@@ -15,7 +17,7 @@ export type ClientToServerEvents = {
   'host:endGame': (payload: Record<string, never>) => void;
   'host:declareWinner': (payload: { displayNumber: string }) => void;
   'host:continueRound': (payload: { mode: WinMode; prizeLabel: string }) => void;
-  'host:rejoinRoom': (payload: { roomId: string }) => void;
+  'host:rejoinRoom': (payload: { roomId: string; hostSecret: string }) => void;
   'player:join': (
     payload: { joinCode: string; name: string; playerId?: string },
     ack?: (res: { ok: true; playerId: string } | { ok: false; error: string }) => void,
@@ -48,7 +50,8 @@ export type ServerToClientEvents = {
 // o próprio client (modo "evento local"), então usa a mesma origem de onde
 // a página foi carregada — funciona tanto em localhost quanto pelo IP da
 // rede Wi-Fi que um celular usou para abrir a página.
-const SERVER_URL = import.meta.env.VITE_SERVER_URL ?? (import.meta.env.DEV ? 'http://localhost:3001' : window.location.origin);
+export const SERVER_URL =
+  import.meta.env.VITE_SERVER_URL ?? (import.meta.env.DEV ? 'http://localhost:3001' : window.location.origin);
 
 export const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(SERVER_URL, {
   autoConnect: true,

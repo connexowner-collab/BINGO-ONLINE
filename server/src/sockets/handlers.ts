@@ -32,7 +32,9 @@ export type ErrorCode =
 export type ClientToServerEvents = {
   'host:createRoom': (
     payload: unknown,
-    ack?: (res: { ok: true; roomId: string; joinCode: string } | { ok: false; error: string }) => void,
+    ack?: (
+      res: { ok: true; roomId: string; joinCode: string; hostSecret: string } | { ok: false; error: string },
+    ) => void,
   ) => void;
   'host:startGame': (payload: unknown) => void;
   'host:drawNext': (payload: unknown) => void;
@@ -251,7 +253,7 @@ export function registerSocketHandlers(io: AppServer): void {
 
       socket.emit('state:sync', toPublicState(room));
       void saveRoomSnapshot(room);
-      ack?.({ ok: true, roomId: room.roomId, joinCode: room.joinCode });
+      ack?.({ ok: true, roomId: room.roomId, joinCode: room.joinCode, hostSecret: runtime.hostSecret });
     });
 
     socket.on('host:rejoinRoom', (payload) => {
@@ -259,6 +261,9 @@ export function registerSocketHandlers(io: AppServer): void {
       if (!parsed) return;
       const runtime = roomManager.getById(parsed.roomId);
       if (!runtime) return sendError(socket, 'ROOM_NOT_FOUND', 'Sala não encontrada');
+      if (!roomManager.verifyHostSecret(runtime, parsed.hostSecret)) {
+        return sendError(socket, 'NOT_HOST', 'Credencial de host inválida');
+      }
 
       socket.data.isHost = true;
       socket.data.roomId = parsed.roomId;

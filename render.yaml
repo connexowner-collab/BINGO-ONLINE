@@ -21,3 +21,7 @@ services:
         sync: false
       - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false
+      # Senha única para entrar no site (tela inicial + /host). Os jogadores
+      # não precisam dela, entram direto pelo QR em /play/<joinCode>.
+      - key: SITE_PASSWORD
+        sync: false

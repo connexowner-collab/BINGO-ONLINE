@@ -17,13 +17,40 @@ import {
 import { RoomEngine } from './game/engine.js';
 import { roomManager } from './roomManager.js';
 import { loadActiveRooms } from './db/repository.js';
+import { checkPassword, issueToken, verifyToken } from './auth.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT ?? 3001);
 const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN ?? 'http://localhost:5173';
 
 const app = express();
+app.use(express.json());
 app.get('/health', (_req, res) => res.json({ ok: true }));
+
+// Login por senha única do site — só protege a tela inicial e o /host no
+// client; a autoridade do jogo em si continua nos eventos host:* (ver
+// roomManager.hostSecret), então mesmo que essa senha vaze não dá pra
+// controlar uma sala sem também ter o hostSecret dela.
+app.use('/auth', (req, res, next) => {
+  res.header('Access-Control-Allow-Origin', CLIENT_ORIGIN);
+  res.header('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') return void res.sendStatus(204);
+  next();
+});
+
+app.post('/auth/login', (req, res) => {
+  const password = typeof req.body?.password === 'string' ? req.body.password : '';
+  if (!password || !checkPassword(password)) {
+    return res.status(401).json({ ok: false, error: 'SENHA_INVALIDA' });
+  }
+  res.json({ ok: true, ...issueToken() });
+});
+
+app.post('/auth/verify', (req, res) => {
+  const token = typeof req.body?.token === 'string' ? req.body.token : '';
+  res.json({ ok: token.length > 0 && verifyToken(token) });
+});
 
 // Modo "evento local" (seção "sem custo de nuvem"): se o client já foi
 // buildado (client/dist), este mesmo processo serve o site inteiro — não

@@ -2,6 +2,7 @@
 // estado de conexão dos jogadores (não faz parte do RoomEngine porque é
 // orquestração de rede, não regra de jogo).
 
+import { timingSafeEqual } from 'node:crypto';
 import { nanoid } from 'nanoid';
 import { RoomEngine, type PhaseInput } from './game/engine.js';
 import type { Player, RoomSettings } from './types.js';
@@ -16,6 +17,10 @@ export type RoomRuntime = {
   players: Map<string, PlayerRuntime>; // playerId -> runtime
   autoDrawTimer: ReturnType<typeof setInterval> | null;
   celebrationTimer: ReturnType<typeof setTimeout> | null;
+  // Prova de que um socket é o host desta sala — só existe em memória, nunca
+  // faz parte de `Room`/`RoomPublicState`, então nunca é enviado aos jogadores
+  // (diferente do roomId, que é publico via state:sync). Ver host:rejoinRoom.
+  hostSecret: string;
 };
 
 const HEARTBEAT_TIMEOUT_MS = 45_000;
@@ -36,11 +41,18 @@ class RoomManager {
       players: new Map(),
       autoDrawTimer: null,
       celebrationTimer: null,
+      hostSecret: nanoid(),
     };
     const room = engine.getRoom();
     this.roomsById.set(room.roomId, runtime);
     this.roomIdByJoinCode.set(room.joinCode, room.roomId);
     return runtime;
+  }
+
+  verifyHostSecret(runtime: RoomRuntime, candidate: string): boolean {
+    const expected = Buffer.from(runtime.hostSecret);
+    const actual = Buffer.from(candidate);
+    return expected.length === actual.length && timingSafeEqual(expected, actual);
   }
 
   getById(roomId: string): RoomRuntime | undefined {

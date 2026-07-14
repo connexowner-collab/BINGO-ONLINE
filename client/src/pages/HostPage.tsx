@@ -204,6 +204,12 @@ export function HostPage() {
   if (!room) {
     return (
       <div className="min-h-screen bg-bingoNavy p-6 text-white md:p-10">
+        <a
+          href="/"
+          className="mb-4 inline-block rounded-lg bg-white/10 px-3 py-1.5 text-sm font-bold hover:bg-white/20"
+        >
+          ← início
+        </a>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h1 className="font-display text-3xl font-extrabold text-bingoOrange">Painel de Sorteio</h1>
