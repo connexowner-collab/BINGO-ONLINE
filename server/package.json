@@ -14,7 +14,8 @@
     "test": "tsc -p tsconfig.test.json && cd dist-test && node --test",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "load-test": "node scripts/load-test.ts",
-    "start:local-event": "npm --prefix ../client run build && npm run build && node dist/index.js"
+    "start:local-event": "npm --prefix ../client run build && npm run build && node dist/index.js",
+    "start:public": "npm --prefix ../client run build && npm run build && node scripts/start-public.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.3",

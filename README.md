@@ -103,7 +103,18 @@ Isso builda o client, builda o servidor e sobe tudo num processo só. O terminal
 
 Não precisa configurar `VITE_SERVER_URL`: o client detecta sozinho o endereço de onde a página foi carregada.
 
-### Opção B — nuvem (site acessível de qualquer lugar)
+### Opção A+ — evento local, mas com jogadores em qualquer rede (5G, outro Wi-Fi)
+
+Se nem todo mundo vai estar no Wi-Fi da festa, use isto em vez da opção A — mesmo notebook, mas com um túnel público gratuito ([localtunnel](https://github.com/localtunnel/localtunnel), sem conta, sem custo):
+
+```bash
+cd server
+npm run start:public
+```
+
+Isso sobe o servidor e o túnel juntos e imprime um endereço `https://algumacoisa.loca.lt` que funciona de qualquer rede com internet. **Abra o painel usando esse endereço** (não `localhost`), para o QR code gerado já funcionar para todo mundo. A primeira vez que alguém abre o link, o localtunnel mostra uma tela pedindo para clicar em "Continue" — é normal, só precisa uma vez por pessoa.
+
+### Opção B — nuvem (site acessível de qualquer lugar, sem depender do notebook ficar ligado)
 
 - **Client → Vercel**: o `vercel.json` na raiz já aponta para `client/`. Basta importar o repositório `BINGO-ONLINE` como projeto na Vercel.
 - **Servidor (Socket.IO) → um serviço com processo persistente** (Render tem plano gratuito com "cold start"; Railway e Fly.io têm planos pagos a partir de poucos dólares/mês) — *não* pode ir para a Vercel, que só roda funções serverless sem estado em memória e sem timer preciso de 3–20s. Configure lá as variáveis de ambiente (`CLIENT_ORIGIN` apontando para a URL da Vercel, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`) e os comandos `npm run build` / `npm start`.
