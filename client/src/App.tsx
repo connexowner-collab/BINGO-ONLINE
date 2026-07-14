@@ -37,7 +37,7 @@ function LandingPage() {
       <img
         src="/mascots/mascot-2.png"
         alt=""
-        className="pointer-events-none absolute bottom-4 left-1/2 hidden h-48 w-auto -translate-x-1/2 drop-shadow-[0_20px_24px_rgba(0,0,0,.4)] md:block"
+        className="pointer-events-none absolute bottom-4 left-1/2 h-24 w-auto -translate-x-1/2 drop-shadow-[0_20px_24px_rgba(0,0,0,.4)] md:h-48"
       />
       <img
         src="/mascots/mascot-3.png"
