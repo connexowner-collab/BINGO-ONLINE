@@ -87,9 +87,27 @@ Para ativar a persistência, rode uma vez o script em `server/supabase/schema.sq
 
 ## Deploy
 
+### Opção A — evento local (recomendada, sem custo)
+
+Se todo mundo vai estar no mesmo lugar (mesma festa, mesmo Wi-Fi), não precisa de nenhum serviço de nuvem pago. O próprio servidor serve o site inteiro:
+
+```bash
+cd server
+npm run start:local-event
+```
+
+Isso builda o client, builda o servidor e sobe tudo num processo só. O terminal mostra dois endereços:
+
+- `http://localhost:3001/host` — abra este no notebook ligado à TV.
+- `http://SEU-IP-NA-REDE:3001` — os celulares entram por aqui (mesma rede Wi-Fi), ou escaneiam o QR code que aparece no painel.
+
+Não precisa configurar `VITE_SERVER_URL`: o client detecta sozinho o endereço de onde a página foi carregada.
+
+### Opção B — nuvem (site acessível de qualquer lugar)
+
 - **Client → Vercel**: o `vercel.json` na raiz já aponta para `client/`. Basta importar o repositório `BINGO-ONLINE` como projeto na Vercel.
-- **Servidor (Socket.IO) → Railway ou Render**: *não* pode ir para a Vercel — funções serverless não sustentam WebSocket com estado em memória, e o sorteio automático precisa de um timer preciso de 3–20s (o cron da Vercel só roda a cada 1 minuto). Configure lá as variáveis de ambiente (`CLIENT_ORIGIN` apontando para a URL da Vercel, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`) e os comandos `npm run build` / `npm start`.
-- Depois do deploy do servidor, atualize `VITE_SERVER_URL` no ambiente do client (Vercel → Settings → Environment Variables) para a URL pública do servidor.
+- **Servidor (Socket.IO) → um serviço com processo persistente** (Render tem plano gratuito com "cold start"; Railway e Fly.io têm planos pagos a partir de poucos dólares/mês) — *não* pode ir para a Vercel, que só roda funções serverless sem estado em memória e sem timer preciso de 3–20s. Configure lá as variáveis de ambiente (`CLIENT_ORIGIN` apontando para a URL da Vercel, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`) e os comandos `npm run build` / `npm start`.
+- Depois do deploy do servidor, atualize `VITE_SERVER_URL` no ambiente do client (Vercel → Settings → Environment Variables) para a URL pública do servidor, e refaça o deploy do client.
 
 ## Aviso legal
 

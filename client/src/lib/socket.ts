@@ -42,7 +42,12 @@ export type ServerToClientEvents = {
   error: (payload: { code: string; message: string }) => void;
 };
 
-const SERVER_URL = import.meta.env.VITE_SERVER_URL ?? 'http://localhost:3001';
+// Sem VITE_SERVER_URL explícita: em dev (Vite separado do servidor) usa
+// localhost:3001; em build de produção assume que o servidor está servindo
+// o próprio client (modo "evento local"), então usa a mesma origem de onde
+// a página foi carregada — funciona tanto em localhost quanto pelo IP da
+// rede Wi-Fi que um celular usou para abrir a página.
+const SERVER_URL = import.meta.env.VITE_SERVER_URL ?? (import.meta.env.DEV ? 'http://localhost:3001' : window.location.origin);
 
 export const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(SERVER_URL, {
   autoConnect: true,
