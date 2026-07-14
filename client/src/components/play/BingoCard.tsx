@@ -2,6 +2,14 @@ import { useState } from 'react';
 import type { Card } from '../../lib/types';
 
 const COLUMNS = ['B', 'I', 'N', 'G', 'O'] as const;
+const FREE_MASCOTS = ['/mascots/mascot-1.png', '/mascots/mascot-2.png', '/mascots/mascot-3.png'];
+
+/** Escolhe um mascote de forma estável por cartela (mesma cartela sempre mostra o mesmo personagem). */
+function mascotForCard(cardId: string): string {
+  let hash = 0;
+  for (let i = 0; i < cardId.length; i++) hash = (hash * 31 + cardId.charCodeAt(i)) >>> 0;
+  return FREE_MASCOTS[hash % FREE_MASCOTS.length]!;
+}
 
 export function BingoCard({
   card,
@@ -21,6 +29,7 @@ export function BingoCard({
   largeText: boolean;
 }) {
   const [shakingCell, setShakingCell] = useState<number | null>(null);
+  const freeMascot = mascotForCard(card.cardId);
 
   function handleClick(cell: number | 'FREE') {
     if (cell === 'FREE' || autoMark) return;
@@ -67,7 +76,11 @@ export function BingoCard({
                     style={{ width: '70%', height: '70%', background: '#F5A623', opacity: 0.35 }}
                   />
                 )}
-                <span className="relative z-10">{cell === 'FREE' ? 'LIVRE' : isMarked ? `✓${cell}` : cell}</span>
+                {cell === 'FREE' ? (
+                  <img src={freeMascot} alt="Espaço livre" className="relative z-10 h-full w-full object-contain p-1" />
+                ) : (
+                  <span className="relative z-10">{isMarked ? `✓${cell}` : cell}</span>
+                )}
               </button>
             );
           })}

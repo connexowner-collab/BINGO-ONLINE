@@ -1,13 +1,21 @@
 // Teste de carga: simula N jogadores entrando ao mesmo tempo e jogando até o
 // fim, contra um servidor já rodando. Rode com: node scripts/load-test.ts
 // (o servidor precisa estar de pé em http://localhost:3001, ou ajuste SERVER_URL).
+//
+// Variáveis de ambiente:
+//   LOAD_TEST_PLAYERS  quantidade de jogadores (default 30)
+//   LOAD_TEST_PHASES   modos separados por vírgula, em ordem (default CARTELA_CHEIA)
+//                      ex.: LOAD_TEST_PHASES=QUINA,CARTELA_CHEIA
 
 import { io, type Socket } from 'socket.io-client';
 
 const SERVER_URL = process.env.SERVER_URL ?? 'http://localhost:3001';
 const NUM_PLAYERS = Number(process.env.LOAD_TEST_PLAYERS ?? 30);
+const PHASE_MODES = (process.env.LOAD_TEST_PHASES ?? 'CARTELA_CHEIA').split(',').map((s) => s.trim());
 
 type Card = { cardId: string; displayNumber: string; hash: string };
+type PhaseWinner = { cardId: string; displayNumber: string; playerName: string; ballSequence: number };
+type Phase = { id: string; order: number; mode: string; prizeLabel: string; status: string; winners: PhaseWinner[] };
 
 function connect(): Socket {
   return io(SERVER_URL, { reconnection: false, forceNew: true });
@@ -24,11 +32,11 @@ function waitFor<T>(socket: Socket, event: string, timeoutMs = 15000): Promise<T
 }
 
 async function main() {
-  console.log(`Teste de carga: ${NUM_PLAYERS} jogadores contra ${SERVER_URL}`);
+  console.log(`Teste de carga: ${NUM_PLAYERS} jogadores · fases: ${PHASE_MODES.join(' → ')} · ${SERVER_URL}`);
   const startedAt = Date.now();
   const errors: unknown[] = [];
 
-  // 1. Host cria a sala.
+  // 1. Host cria a sala com as fases pedidas.
   const host = connect();
   await waitFor(host, 'connect');
 
@@ -37,8 +45,8 @@ async function main() {
       host.emit(
         'host:createRoom',
         {
-          settings: { drawMode: 'AUTO', intervalSeconds: 3, maxCardsPerPlayer: 1 },
-          phases: [{ mode: 'CARTELA_CHEIA', prizeLabel: 'Teste de carga' }],
+          settings: { drawMode: 'AUTO', intervalSeconds: 3, celebrationSeconds: 5, maxCardsPerPlayer: 1 },
+          phases: PHASE_MODES.map((mode) => ({ mode, prizeLabel: `Prêmio ${mode}` })),
         },
         resolve,
       );
@@ -55,7 +63,23 @@ async function main() {
     nearWinUpdates++;
   });
 
-  const finishedPromise = waitFor(host, 'game:finished', 5 * 60_000);
+  const phaseResults: { mode: string; winners: number; ballSequence: number | null; atMs: number }[] = [];
+  host.on('phase:won', (payload: { phase: Phase; ball: { sequence: number } }) => {
+    phaseResults.push({
+      mode: payload.phase.mode,
+      winners: payload.phase.winners.length,
+      ballSequence: payload.ball.sequence,
+      atMs: Date.now() - startedAt,
+    });
+    console.log(
+      `  → fase ${payload.phase.mode} fechou na bola #${payload.ball.sequence} com ${payload.phase.winners.length} vencedor(es) (${Date.now() - startedAt}ms)`,
+    );
+  });
+  host.on('phase:started', (payload: { phase: Phase }) => {
+    console.log(`  → próxima fase: ${payload.phase.mode}`);
+  });
+
+  const finishedPromise = waitFor(host, 'game:finished', 10 * 60_000);
 
   // 2. N jogadores entram "ao mesmo tempo".
   const joinStart = Date.now();
@@ -82,24 +106,29 @@ async function main() {
   const uniqueCards = hashes.size === players.length;
   console.log(`Cartelas únicas: ${uniqueCards ? 'OK' : 'FALHOU'} (${hashes.size}/${players.length})`);
 
-  // 4. Inicia o sorteio e aguarda o fim do jogo.
+  // 4. Inicia o sorteio e aguarda o fim do jogo (todas as fases).
   host.emit('host:startGame', {});
-  console.log('Sorteio iniciado, aguardando o jogo terminar (cartela cheia)...');
+  console.log('Sorteio iniciado, aguardando o jogo terminar...');
 
   const report = await finishedPromise;
   const totalMs = Date.now() - startedAt;
 
   console.log('\n--- Resultado ---');
   console.log(`Tempo total: ${totalMs}ms`);
+  console.log(`Fases concluídas: ${phaseResults.length}/${PHASE_MODES.length}`);
+  for (const r of phaseResults) {
+    console.log(`  ${r.mode}: bola #${r.ballSequence}, ${r.winners} vencedor(es), ${r.atMs}ms`);
+  }
   console.log(`Atualizações de "quase lá" recebidas: ${nearWinUpdates}`);
   console.log(`Erros recebidos via socket: ${errors.length}`);
   if (errors.length > 0) console.log(errors.slice(0, 5));
-  console.log('Relatório final:', JSON.stringify(report, null, 2).slice(0, 500), '...');
+  console.log('Relatório final (resumo):', JSON.stringify(report, null, 2).slice(0, 300), '...');
 
   for (const p of players) p.socket.disconnect();
   host.disconnect();
 
-  if (!uniqueCards || errors.length > 0) {
+  const allPhasesCompleted = phaseResults.length === PHASE_MODES.length;
+  if (!uniqueCards || errors.length > 0 || !allPhasesCompleted) {
     console.error('\nTESTE FALHOU');
     process.exit(1);
   }
