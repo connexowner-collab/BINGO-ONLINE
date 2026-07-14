@@ -1,0 +1,20 @@
+# Blueprint do Render — configura o serviço automaticamente.
+# Como usar: no Render, vá em "New" → "Blueprint", selecione o repositório
+# connexowner-collab/BINGO-ONLINE, e ele lê este arquivo sozinho. Só pede pra
+# você preencher as duas variáveis marcadas como secretas (SUPABASE_*) na hora.
+
+services:
+  - type: web
+    name: bingo-online-server
+    runtime: node
+    plan: free
+    rootDir: server
+    buildCommand: npm run build
+    startCommand: npm start
+    envVars:
+      - key: CLIENT_ORIGIN
+        value: https://bingo-online-tawny.vercel.app
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
