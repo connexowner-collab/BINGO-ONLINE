@@ -9,7 +9,10 @@ services:
     runtime: node
     plan: free
     rootDir: server
-    buildCommand: npm run build
+    # --include=dev é necessário: o Render roda com NODE_ENV=production por
+    # padrão, e o npm pula devDependencies (onde está o typescript) nesse
+    # modo — sem isso o `tsc` do build falha por não existir.
+    buildCommand: npm install --include=dev && npm run build
     startCommand: npm start
     envVars:
       - key: CLIENT_ORIGIN
