@@ -2,5 +2,10 @@
   "buildCommand": "cd client && npm install && npm run build",
   "outputDirectory": "client/dist",
   "installCommand": "echo 'install handled by buildCommand'",
+  "build": {
+    "env": {
+      "VITE_SERVER_URL": "https://bingo-online-server.onrender.com"
+    }
+  },
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }
