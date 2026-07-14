@@ -2,15 +2,21 @@ import { useEffect } from 'react';
 import confetti from 'canvas-confetti';
 import { motion } from 'framer-motion';
 import { Cloud, Star } from '../decor/Sparkle';
+import { MiniCardGrid } from '../decor/MiniCardGrid';
+import type { Card } from '../../lib/types';
 
 export function WinOverlay({
   displayNumber,
   prizeLabel,
   modeLabel,
+  card,
+  drawnNumbers,
 }: {
   displayNumber: string;
   prizeLabel: string;
   modeLabel: string;
+  card: Card | undefined;
+  drawnNumbers: Set<number>;
 }) {
   useEffect(() => {
     confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } });
@@ -48,6 +54,13 @@ export function WinOverlay({
         <div className="font-display text-6xl font-extrabold">{displayNumber}</div>
       </div>
       <p className="text-white/70">Prêmio: {prizeLabel}</p>
+
+      {card && (
+        <>
+          <p className="text-sm text-white/60">confira sua cartela — deve bater com a do painel</p>
+          <MiniCardGrid card={card} drawnNumbers={drawnNumbers} />
+        </>
+      )}
     </motion.div>
   );
 }

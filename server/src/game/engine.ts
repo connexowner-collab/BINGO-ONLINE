@@ -298,4 +298,37 @@ export class RoomEngine {
     this.room.status = 'FINISHED';
     this.room.currentPhaseId = null;
   }
+
+  /**
+   * Depois que o jogo termina, permite começar mais uma rodada (mesmo modo
+   * ou outro) com o sorteio em andamento — sem gerar cartelas novas nem
+   * reembaralhar quem já saiu. Quem já ganhou alguma fase fica de fora desta
+   * e das próximas rodadas (é assim que o host pediu: o vencedor anterior é
+   * "desclassificado", os demais continuam disputando).
+   */
+  continueRound(mode: WinMode, prizeLabel: string): Phase {
+    if (this.room.status !== 'FINISHED') {
+      throw new Error('Só é possível continuar depois que o jogo termina');
+    }
+
+    this.room.settings.permitirVitoriaRepetida = false;
+
+    if (this.room.remainingBalls.length === 0) {
+      this.room.remainingBalls = shuffledBallPool();
+    }
+
+    const lastOrder = this.room.phases.at(-1)?.order ?? -1;
+    const newPhase: Phase = {
+      id: nanoid(),
+      order: lastOrder + 1,
+      mode,
+      prizeLabel,
+      status: 'ACTIVE',
+      winners: [],
+    };
+    this.room.phases.push(newPhase);
+    this.room.currentPhaseId = newPhase.id;
+    this.room.status = 'RUNNING';
+    return newPhase;
+  }
 }

@@ -146,4 +146,46 @@ describe('RoomEngine', () => {
     assert.equal(winners[0]!.cardId, card.cardId);
     assert.equal(engine.getRoom().status, 'CELEBRATING');
   });
+
+  test('continueRound só funciona depois de FINISHED e exclui quem já ganhou', () => {
+    const engine = new RoomEngine([{ mode: 'QUATRO_CANTOS', prizeLabel: 'Prêmio' }]);
+    engine.issueCard('p1', 'Ana');
+    engine.issueCard('p2', 'Beto');
+    engine.start();
+
+    assert.throws(() => engine.continueRound('QUINA', 'Prêmio 2'), /depois que o jogo termina/);
+
+    let winnerCardId: string | null = null;
+    for (let i = 0; i < 75; i++) {
+      const result = engine.drawNext();
+      if (!result) break;
+      if (result.phaseWon) {
+        winnerCardId = result.evaluation.winners[0]!.cardId;
+        break;
+      }
+    }
+    assert.ok(winnerCardId);
+    engine.advancePhase(); // não há mais fases pré-configuradas -> FINISHED
+    assert.equal(engine.getRoom().status, 'FINISHED');
+
+    const newPhase = engine.continueRound('QUINA', 'Prêmio 2');
+    assert.equal(engine.getRoom().status, 'RUNNING');
+    assert.equal(engine.getRoom().currentPhaseId, newPhase.id);
+    assert.equal(engine.getRoom().phases.length, 2);
+    // Vitória repetida passa a ser proibida — quem já ganhou fica de fora.
+    assert.equal(engine.getRoom().settings.permitirVitoriaRepetida, false);
+
+    // Sorteia até a QUINA fechar de novo: só a cartela que NÃO ganhou antes
+    // pode vencer, já que permitirVitoriaRepetida virou false.
+    for (let i = 0; i < 75; i++) {
+      const result = engine.drawNext();
+      if (!result) break;
+      if (result.phaseWon) {
+        for (const w of result.evaluation.winners) {
+          assert.notEqual(w.cardId, winnerCardId, 'quem já ganhou não pode vencer a rodada seguinte');
+        }
+        break;
+      }
+    }
+  });
 });

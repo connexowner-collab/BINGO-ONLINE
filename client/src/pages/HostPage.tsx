@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { socket } from '../lib/socket';
 import { bingoAudio, type PreloadProgress } from '../lib/audio';
-import type { Ball, NearWinEntry, Phase, RoomPublicState, RoomSettings, WinMode } from '../lib/types';
+import type { Ball, Card, NearWinEntry, Phase, RoomPublicState, RoomSettings, WinMode } from '../lib/types';
 import { WIN_MODE_OPTIONS } from '../lib/modeLabels';
 import { BallDisplay } from '../components/host/BallDisplay';
 import { BoardGrid } from '../components/host/BoardGrid';
@@ -34,8 +34,11 @@ export function HostPage() {
   const [drawMode, setDrawMode] = useState<'AUTO' | 'MANUAL'>('AUTO');
   const [error, setError] = useState<string | null>(null);
   const [winnersBanner, setWinnersBanner] = useState<Phase | null>(null);
+  const [winningCards, setWinningCards] = useState<Card[]>([]);
   const [finalReport, setFinalReport] = useState<unknown>(null);
   const [declareInput, setDeclareInput] = useState('');
+  const [continueMode, setContinueMode] = useState<WinMode>('QUINA');
+  const [continuePrize, setContinuePrize] = useState('');
 
   const [audioReady, setAudioReady] = useState(false);
   const [audioProgress, setAudioProgress] = useState<PreloadProgress>({ loaded: 0, total: 78 });
@@ -59,12 +62,17 @@ export function HostPage() {
     function onNearWin(payload: typeof nearWin) {
       setNearWin(payload);
     }
-    function onPhaseWon(payload: { phase: Phase }) {
+    function onPhaseWon(payload: { phase: Phase; winningCards: Card[] }) {
       setWinnersBanner(payload.phase);
+      setWinningCards(payload.winningCards);
       bingoAudio.playSfx('win');
     }
     function onPhaseStarted() {
       setWinnersBanner(null);
+      // "Quase lá" é sempre referente à fase ativa — limpa o painel para não
+      // mostrar por alguns segundos o resultado (já desatualizado) da fase
+      // anterior, até a próxima bola recalcular de verdade.
+      setNearWin({ oneAway: [], twoAway: [], oneAwayExtraCount: 0, twoAwayExtraCount: 0 });
       bingoAudio.playSfx('phase-start');
     }
     function onPlayerJoined(payload: { playerName: string; totalPlayers: number }) {
@@ -126,6 +134,31 @@ export function HostPage() {
     const displayNumber = declareInput.trim().startsWith('#') ? declareInput.trim() : `#${declareInput.trim()}`;
     socket.emit('host:declareWinner', { displayNumber });
     setDeclareInput('');
+  }
+
+  function continueRound() {
+    if (!continuePrize.trim()) return;
+    socket.emit('host:continueRound', { mode: continueMode, prizeLabel: continuePrize.trim() });
+    setContinuePrize('');
+  }
+
+  /** Volta pra tela inicial e larga a sala atual (o socket some do room dela ao reconectar). */
+  function resetToStart() {
+    socket.disconnect();
+    setJoinCode(null);
+    setRoom(null);
+    setDrawnBalls([]);
+    setRemainingCount(75);
+    setLastBall(null);
+    setNearWin({ oneAway: [], twoAway: [], oneAwayExtraCount: 0, twoAwayExtraCount: 0 });
+    setPlayers([]);
+    setError(null);
+    setWinnersBanner(null);
+    setWinningCards([]);
+    setFinalReport(null);
+    setAudioReady(false);
+    setAudioFallback(false);
+    socket.connect();
   }
 
   function download(filename: string, content: string, mime: string) {
@@ -273,6 +306,13 @@ export function HostPage() {
         <Star top={20} left={300} size={20} />
         <Star top={110} left={480} size={26} />
 
+        <button
+          onClick={resetToStart}
+          className="fixed left-4 top-4 z-20 rounded-lg bg-white/10 px-3 py-1.5 text-sm font-bold hover:bg-white/20"
+        >
+          ← sair
+        </button>
+
         <div className="z-10 mt-14">
           <RibbonBanner>{EVENT_TITLE}</RibbonBanner>
         </div>
@@ -409,6 +449,53 @@ export function HostPage() {
             Exportar CSV
           </button>
         </div>
+
+        <div className="mt-8 rounded-xl bg-bingoNavyLight p-4">
+          <h2 className="font-display text-lg font-bold">Continuar jogando</h2>
+          <p className="mt-1 text-sm text-white/60">
+            Mais uma rodada com o mesmo sorteio em andamento — quem já ganhou fica de fora, os outros continuam.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {WIN_MODE_OPTIONS.map(({ mode, label }) => {
+              const selected = continueMode === mode;
+              return (
+                <button
+                  key={mode}
+                  onClick={() => setContinueMode(mode)}
+                  className="rounded-[9px] px-3.5 py-2 text-[15px] font-bold"
+                  style={{
+                    background: selected ? '#F5A623' : 'rgba(255,255,255,.06)',
+                    color: selected ? '#201B3B' : '#fff',
+                    border: `2px solid ${selected ? '#F5A623' : 'rgba(255,255,255,.15)'}`,
+                  }}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+          <div className="mt-3 flex items-center gap-2">
+            <input
+              value={continuePrize}
+              onChange={(e) => setContinuePrize(e.target.value)}
+              placeholder="Nome do prêmio"
+              className="flex-1 rounded bg-white/10 px-3 py-2"
+            />
+            <button
+              onClick={continueRound}
+              className="rounded-lg bg-bingoWin px-4 py-2 font-bold text-white hover:brightness-95"
+            >
+              Continuar jogando
+            </button>
+          </div>
+        </div>
+
+        <button
+          onClick={resetToStart}
+          className="mt-6 rounded-lg bg-white/10 px-4 py-2 font-bold hover:bg-white/20"
+        >
+          ← Nova sala
+        </button>
       </div>
     );
   }
@@ -419,13 +506,25 @@ export function HostPage() {
       className="relative min-h-screen overflow-hidden pb-28 text-white"
       style={{ background: 'linear-gradient(180deg,#3E6FD9 0%,#5C8DF2 20%,#10142A 46%)' }}
     >
-      {winnersBanner && <WinnerOverlay phase={winnersBanner} celebrationSeconds={room.settings.celebrationSeconds} />}
+      {winnersBanner && (
+        <WinnerOverlay
+          phase={winnersBanner}
+          winningCards={winningCards}
+          drawnNumbers={drawnNumbers}
+          celebrationSeconds={room.settings.celebrationSeconds}
+        />
+      )}
 
       <Cloud top={14} left={-60} width={300} height={96} opacity={0.7} />
       <Cloud top={60} right={-70} width={260} height={86} opacity={0.55} />
 
       <header className="relative z-10 flex flex-wrap items-center justify-between gap-2 px-6 pt-6 md:px-10">
-        <h1 className="font-display text-xl font-extrabold text-white md:text-2xl">Sala {joinCode}</h1>
+        <div className="flex items-center gap-3">
+          <button onClick={resetToStart} className="rounded-lg bg-white/10 px-3 py-1.5 text-sm font-bold hover:bg-white/20">
+            ← sair
+          </button>
+          <h1 className="font-display text-xl font-extrabold text-white md:text-2xl">Sala {joinCode}</h1>
+        </div>
         <AdminDrawer
           settings={room.settings}
           players={players}

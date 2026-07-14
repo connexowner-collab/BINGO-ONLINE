@@ -41,9 +41,12 @@ export function PlayPage() {
   const [progressByCard, setProgressByCard] = useState<Record<string, { marked: number[]; missingForCurrentPhase: number }>>({});
   const [tappedByCard, setTappedByCard] = useState<Record<string, Set<number>>>({});
   const [connected, setConnected] = useState(socket.connected);
-  const [wonEntry, setWonEntry] = useState<{ displayNumber: string; prizeLabel: string; modeLabel: string } | null>(
-    null,
-  );
+  const [wonEntry, setWonEntry] = useState<{
+    displayNumber: string;
+    prizeLabel: string;
+    modeLabel: string;
+    cardId: string;
+  } | null>(null);
 
   const [highContrast, setHighContrast] = useState(localStorage.getItem('bingo:highContrast') === '1');
   const [largeText, setLargeText] = useState(localStorage.getItem('bingo:largeText') === '1');
@@ -80,7 +83,12 @@ export function PlayPage() {
         const mine = payload.phase.winners.find((w) => currentCards.some((c) => c.cardId === w.cardId));
         if (mine) {
           const modeLabel = MODE_LABELS[payload.phase.mode] ?? payload.phase.mode.toLowerCase();
-          setWonEntry({ displayNumber: mine.displayNumber, prizeLabel: payload.phase.prizeLabel, modeLabel });
+          setWonEntry({
+            displayNumber: mine.displayNumber,
+            prizeLabel: payload.phase.prizeLabel,
+            modeLabel,
+            cardId: mine.cardId,
+          });
         }
         return currentCards;
       });
@@ -228,7 +236,13 @@ export function PlayPage() {
       style={{ background: highContrast ? '#fff' : '#FFF8EA', color: highContrast ? '#000' : '#201B3B' }}
     >
       {wonEntry && (
-        <WinOverlay displayNumber={wonEntry.displayNumber} prizeLabel={wonEntry.prizeLabel} modeLabel={wonEntry.modeLabel} />
+        <WinOverlay
+          displayNumber={wonEntry.displayNumber}
+          prizeLabel={wonEntry.prizeLabel}
+          modeLabel={wonEntry.modeLabel}
+          card={cards.find((c) => c.cardId === wonEntry.cardId)}
+          drawnNumbers={drawnNumbers}
+        />
       )}
 
       <div
@@ -333,6 +347,17 @@ export function PlayPage() {
           style={{ color: '#8A7B4E' }}
         >
           ◐ alto contraste
+        </button>
+        <button
+          onClick={() => {
+            localStorage.removeItem('bingo:playerId');
+            localStorage.removeItem('bingo:joinCode');
+            window.location.href = '/play';
+          }}
+          className="ml-4 text-sm font-bold"
+          style={{ color: '#8A7B4E' }}
+        >
+          sair da sala
         </button>
       </div>
     </div>

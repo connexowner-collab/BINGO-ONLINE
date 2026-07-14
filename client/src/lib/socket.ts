@@ -1,5 +1,5 @@
 import { io, type Socket } from 'socket.io-client';
-import type { Ball, Card, NearWinEntry, Phase, PhaseWinner, RoomPublicState } from './types';
+import type { Ball, Card, NearWinEntry, Phase, PhaseWinner, RoomPublicState, WinMode } from './types';
 
 export type ClientToServerEvents = {
   'host:createRoom': (
@@ -14,6 +14,7 @@ export type ClientToServerEvents = {
   'host:repeatLastBall': (payload: Record<string, never>) => void;
   'host:endGame': (payload: Record<string, never>) => void;
   'host:declareWinner': (payload: { displayNumber: string }) => void;
+  'host:continueRound': (payload: { mode: WinMode; prizeLabel: string }) => void;
   'host:rejoinRoom': (payload: { roomId: string }) => void;
   'player:join': (
     payload: { joinCode: string; name: string; playerId?: string },
@@ -26,7 +27,7 @@ export type ClientToServerEvents = {
 export type ServerToClientEvents = {
   'state:sync': (state: RoomPublicState) => void;
   'ball:drawn': (payload: { ball: Ball; totalDrawn: number; remaining: number }) => void;
-  'phase:won': (payload: { phase: Phase; winners: PhaseWinner[]; ball: Ball }) => void;
+  'phase:won': (payload: { phase: Phase; winners: PhaseWinner[]; winningCards: Card[]; ball: Ball }) => void;
   'phase:started': (payload: { phase: Phase }) => void;
   'nearWin:update': (payload: {
     oneAway: NearWinEntry[];

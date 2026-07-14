@@ -8,6 +8,7 @@ import {
   hostCreateRoomSchema,
   hostDeclareWinnerSchema,
   hostRejoinRoomSchema,
+  phaseInputSchema,
   playerJoinSchema,
   roomSettingsPartialSchema,
 } from '../schemas.js';
@@ -42,6 +43,8 @@ export type ClientToServerEvents = {
   'host:endGame': (payload: unknown) => void;
   /** Modo "jogador se anuncia" (anunciarVencedorAutomatico = false). */
   'host:declareWinner': (payload: unknown) => void;
+  /** Depois de FINISHED: mais uma rodada, mesmo sorteio, quem já ganhou fica de fora. */
+  'host:continueRound': (payload: unknown) => void;
   /** Extensão além da seção 5: permite ao painel recuperar sua sala após reconectar (seção 9). */
   'host:rejoinRoom': (payload: unknown) => void;
   'player:join': (
@@ -55,7 +58,8 @@ export type ClientToServerEvents = {
 export type ServerToClientEvents = {
   'state:sync': (state: RoomPublicState) => void;
   'ball:drawn': (payload: { ball: Ball; totalDrawn: number; remaining: number }) => void;
-  'phase:won': (payload: { phase: Phase; winners: PhaseWinner[]; ball: Ball }) => void;
+  /** winningCards traz a grade completa de cada vencedor, para conferência (painel e celular). */
+  'phase:won': (payload: { phase: Phase; winners: PhaseWinner[]; winningCards: Card[]; ball: Ball }) => void;
   'phase:started': (payload: { phase: Phase }) => void;
   'nearWin:update': (payload: {
     oneAway: NearWinEntry[];
@@ -163,7 +167,10 @@ function stopAutoTimer(runtime: RoomRuntime): void {
  */
 function triggerCelebration(io: AppServer, runtime: RoomRuntime, roomId: string, phase: Phase, ball: Ball): void {
   stopAutoTimer(runtime);
-  io.to(roomChannel(roomId)).emit('phase:won', { phase, winners: phase.winners, ball });
+  const winningCards = phase.winners
+    .map((w) => runtime.engine.getCard(w.cardId))
+    .filter((c): c is Card => c !== undefined);
+  io.to(roomChannel(roomId)).emit('phase:won', { phase, winners: phase.winners, winningCards, ball });
   io.to(roomChannel(roomId)).emit('state:sync', toPublicState(runtime.engine.getRoom()));
 
   runtime.celebrationTimer = setTimeout(() => {
@@ -379,6 +386,28 @@ export function registerSocketHandlers(io: AppServer): void {
       io.to(roomChannel(roomId)).emit('game:finished', { report: buildReport(runtime) });
       io.to(roomChannel(roomId)).emit('state:sync', toPublicState(runtime.engine.getRoom()));
       void saveRoomSnapshot(runtime.engine.getRoom());
+    });
+
+    socket.on('host:continueRound', (payload) => {
+      const runtime = requireHostRuntime();
+      if (!runtime) return;
+      const parsed = parseOrError(phaseInputSchema, payload, socket);
+      if (!parsed) return;
+
+      let newPhase;
+      try {
+        newPhase = runtime.engine.continueRound(parsed.mode, parsed.prizeLabel);
+      } catch (err) {
+        return sendError(socket, 'INVALID_STATE', (err as Error).message);
+      }
+
+      const roomId = socket.data.roomId!;
+      const room = runtime.engine.getRoom();
+      io.to(roomChannel(roomId)).emit('phase:started', { phase: newPhase });
+      io.to(roomChannel(roomId)).emit('state:sync', toPublicState(room));
+      emitProgressForAllPlayers(io, runtime);
+      if (room.settings.drawMode === 'AUTO') startAutoTimer(io, runtime, roomId);
+      void saveRoomSnapshot(room);
     });
 
     socket.on('player:join', (payload, ack) => {

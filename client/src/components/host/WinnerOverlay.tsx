@@ -1,11 +1,22 @@
 import { useEffect, useRef, useState } from 'react';
 import confetti from 'canvas-confetti';
 import { motion } from 'framer-motion';
-import type { Phase } from '../../lib/types';
+import type { Card, Phase } from '../../lib/types';
 import { Cloud } from '../decor/Sparkle';
+import { MiniCardGrid } from '../decor/MiniCardGrid';
 import { MODE_LABELS } from '../../lib/modeLabels';
 
-export function WinnerOverlay({ phase, celebrationSeconds }: { phase: Phase; celebrationSeconds: number }) {
+export function WinnerOverlay({
+  phase,
+  winningCards,
+  drawnNumbers,
+  celebrationSeconds,
+}: {
+  phase: Phase;
+  winningCards: Card[];
+  drawnNumbers: Set<number>;
+  celebrationSeconds: number;
+}) {
   const [secondsLeft, setSecondsLeft] = useState(celebrationSeconds);
   const firedRef = useRef(false);
 
@@ -61,13 +72,17 @@ export function WinnerOverlay({ phase, celebrationSeconds }: { phase: Phase; cel
         {modeLabel}! {isTie && `empate entre ${phase.winners.length} cartelas`}
       </motion.div>
 
-      <div className={`flex flex-wrap justify-center gap-14 ${isTie ? '' : ''}`}>
-        {phase.winners.map((w) => (
-          <div key={w.cardId} className="font-display font-extrabold leading-tight text-white">
-            <div className={isTie ? 'text-3xl md:text-5xl' : 'text-4xl md:text-7xl'}>CARTELA {w.displayNumber}</div>
-            <div className={isTie ? 'text-xl md:text-3xl' : 'text-2xl md:text-4xl'}>{w.playerName.toUpperCase()}</div>
-          </div>
-        ))}
+      <div className="flex flex-wrap justify-center gap-10">
+        {phase.winners.map((w) => {
+          const card = winningCards.find((c) => c.cardId === w.cardId);
+          return (
+            <div key={w.cardId} className="flex flex-col items-center gap-3 font-display font-extrabold leading-tight text-white">
+              <div className={isTie ? 'text-3xl md:text-5xl' : 'text-4xl md:text-7xl'}>CARTELA {w.displayNumber}</div>
+              <div className={isTie ? 'text-xl md:text-3xl' : 'text-2xl md:text-4xl'}>{w.playerName.toUpperCase()}</div>
+              {card && <MiniCardGrid card={card} drawnNumbers={drawnNumbers} />}
+            </div>
+          );
+        })}
       </div>
 
       <p className="mt-2 text-lg font-bold text-white/70 md:text-2xl">
