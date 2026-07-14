@@ -1,0 +1,23 @@
+# Chama o servidor a cada 10 minutos para ele não "dormir" (o plano grátis
+# do Render desliga o serviço depois de 15 min sem nenhuma requisição).
+#
+# Para desativar depois do evento: apague este arquivo (ou vá em
+# github.com/connexowner-collab/BINGO-ONLINE → Actions → "Keep Render server
+# awake" → "..." → Disable workflow).
+
+name: Keep Render server awake
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Chamar /health do servidor
+        run: |
+          curl -sf https://bingo-online-server.onrender.com/health \
+            && echo "servidor respondeu, seguindo ligado" \
+            || echo "sem resposta (pode estar acordando agora, sem problema)"
