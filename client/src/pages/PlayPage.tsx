@@ -238,8 +238,11 @@ export function PlayPage() {
   // --- M2/M4 · Cartela em jogo (ou desconectado) ---
   return (
     <div
-      className="min-h-screen"
-      style={{ background: highContrast ? '#fff' : '#FFF8EA', color: highContrast ? '#000' : '#201B3B' }}
+      className="relative min-h-screen overflow-hidden"
+      style={{
+        background: highContrast ? '#fff' : 'linear-gradient(180deg,#5C8DF2 0%,#A9C6F7 30%,#FFF8EA 55%)',
+        color: highContrast ? '#000' : '#201B3B',
+      }}
     >
       {wonEntry && (
         <WinOverlay
@@ -251,120 +254,151 @@ export function PlayPage() {
         />
       )}
 
-      <div
-        className="flex items-center justify-between px-5 py-4 text-white"
-        style={{ background: '#201B3B', opacity: connected ? 1 : 0.6 }}
-      >
-        <div className="flex items-center gap-2.5">
-          <img src="/mascots/mascot-1.png" alt="" className="h-10 w-auto" />
-          <div className="num text-lg font-extrabold">CARTELA {activeCard?.displayNumber ?? '—'}</div>
-        </div>
-        <div className="font-display text-3xl font-extrabold" style={{ color: connected ? '#F5A623' : 'rgba(245,166,35,.3)' }}>
-          {lastBall ? `${lastBall.letter}${lastBall.number}` : '—'}
-        </div>
-      </div>
-
-      {cards.length > 1 && (
-        <div className="flex gap-2 px-4 pt-3">
-          {cards.map((c, i) => {
-            const selected = i === activeCardIdx;
-            return (
-              <button
-                key={c.cardId}
-                onClick={() => setActiveCardIdx(i)}
-                className="flex-1 rounded-[9px] py-2 text-center text-sm font-extrabold"
-                style={{ background: selected ? '#201B3B' : '#F1E9D2', color: selected ? '#fff' : '#8A7B4E' }}
-              >
-                {c.displayNumber}
-              </button>
-            );
-          })}
-        </div>
-      )}
-
-      <ConnectionBanner connected={connected} />
-
-      <div className="mt-2.5 py-3 text-center font-display text-xl font-extrabold text-white" style={{ background: '#5C8DF2' }}>
-        {activeProgress ? `Faltam ${activeProgress.missingForCurrentPhase} números para a ${modeLabel}` : `Jogando ${modeLabel}`}
-      </div>
-
-      {!autoMark && connected && (
-        <p className="px-4 pt-3 text-center text-sm opacity-70">Toque nos números sorteados para marcar sua cartela.</p>
-      )}
-
-      <div className="flex flex-col items-center gap-6 p-4" style={{ opacity: connected ? 1 : 0.4 }}>
-        {activeCard && (
-          <BingoCard
-            key={activeCard.cardId}
-            card={activeCard}
-            drawnNumbers={drawnNumbers}
-            autoMark={autoMark}
-            tappedNumbers={tappedByCard[activeCard.cardId] ?? new Set()}
-            onToggleTap={(n) => toggleTap(activeCard.cardId, n)}
-            highContrast={highContrast}
-            largeText={largeText}
+      {!highContrast && (
+        <>
+          <CloudField />
+          <img
+            src="/mascots/mascot-1.png"
+            alt=""
+            className="pointer-events-none absolute -left-2 bottom-0 h-20 w-auto opacity-90"
           />
+          <img
+            src="/mascots/mascot-3.png"
+            alt=""
+            className="pointer-events-none absolute -right-2 bottom-0 h-20 w-auto opacity-90"
+          />
+        </>
+      )}
+
+      <div className="relative z-10 flex flex-col items-center gap-3.5 px-4 pb-8 pt-6">
+        {/* Provisório: estilo colorido tipo logo de brinquedo — ajusto assim que
+            você mandar a referência do "Anthony" que combinou. */}
+        <h1 className="font-display text-4xl font-extrabold tracking-wide">
+          {['A', 'n', 't', 'h', 'o', 'n', 'y'].map((ch, i) => (
+            <span key={i} style={{ color: ['#E8433D', '#F5A623', '#3E6FD9'][i % 3] }}>
+              {ch}
+            </span>
+          ))}
+        </h1>
+
+        <ConnectionBanner connected={connected} />
+
+        {cards.length > 1 && (
+          <div className="flex w-full max-w-sm gap-2">
+            {cards.map((c, i) => {
+              const selected = i === activeCardIdx;
+              return (
+                <button
+                  key={c.cardId}
+                  onClick={() => setActiveCardIdx(i)}
+                  className="flex-1 rounded-full py-2 text-center text-sm font-extrabold"
+                  style={{ background: selected ? '#201B3B' : '#fff', color: selected ? '#fff' : '#8A7B4E' }}
+                >
+                  {c.displayNumber}
+                </button>
+              );
+            })}
+          </div>
         )}
-      </div>
 
-      {(room?.settings.maxCardsPerPlayer ?? 1) > cards.length && (
-        <button
-          onClick={() => socket.emit('player:requestExtraCard', {})}
-          className="mx-auto mb-4 block rounded-lg px-4 py-2"
-          style={{ background: 'rgba(32,27,59,.08)' }}
+        <div
+          className="w-full max-w-sm rounded-[28px] bg-white p-5 shadow-[0_20px_45px_rgba(32,27,59,.3)]"
+          style={{ opacity: connected ? 1 : 0.5 }}
         >
-          + cartela extra
-        </button>
-      )}
+          <div className="mb-4 flex items-center justify-between gap-2">
+            <div
+              className="rounded-full px-3 py-1.5 text-sm font-extrabold"
+              style={{ background: '#F1E9D2', color: '#8A7B4E' }}
+            >
+              último: {lastBall ? `${lastBall.letter}${lastBall.number}` : '—'}
+            </div>
+            <div
+              className="flex items-center gap-1.5 rounded-full py-1 pl-1 pr-3 text-sm font-extrabold text-white"
+              style={{ background: '#201B3B' }}
+            >
+              <img src="/mascots/mascot-1.png" alt="" className="h-7 w-7 rounded-full bg-white object-cover" />
+              cartela {activeCard?.displayNumber ?? '—'}
+            </div>
+          </div>
 
-      <div className="flex items-center justify-center gap-3 border-t px-4 py-3.5" style={{ borderColor: '#EADFC2' }}>
-        <button
-          onClick={() => {
-            const v = !largeText;
-            setLargeText(v);
-            localStorage.setItem('bingo:largeText', v ? '1' : '0');
-          }}
-          className="text-sm font-bold"
-          style={{ color: '#8A7B4E' }}
-        >
-          fonte ampliada
-        </button>
-        <span
-          className="relative rounded-full"
-          style={{ width: 40, height: 24, background: largeText ? '#F5A623' : '#EADFC2' }}
-          onClick={() => {
-            const v = !largeText;
-            setLargeText(v);
-            localStorage.setItem('bingo:largeText', v ? '1' : '0');
-          }}
-        >
-          <span
-            className="absolute top-[2px] rounded-full bg-white transition-all"
-            style={{ width: 20, height: 20, left: largeText ? 18 : 2 }}
-          />
-        </span>
-        <button
-          onClick={() => {
-            const v = !highContrast;
-            setHighContrast(v);
-            localStorage.setItem('bingo:highContrast', v ? '1' : '0');
-          }}
-          className="ml-4 text-sm font-bold"
-          style={{ color: '#8A7B4E' }}
-        >
-          ◐ alto contraste
-        </button>
-        <button
-          onClick={() => {
-            localStorage.removeItem('bingo:playerId');
-            localStorage.removeItem('bingo:joinCode');
-            window.location.href = '/play';
-          }}
-          className="ml-4 text-sm font-bold"
-          style={{ color: '#8A7B4E' }}
-        >
-          sair da sala
-        </button>
+          <div
+            className="mb-3 rounded-full py-2.5 text-center text-sm font-extrabold text-white"
+            style={{ background: '#5C8DF2' }}
+          >
+            {activeProgress
+              ? `faltam ${activeProgress.missingForCurrentPhase} para a ${modeLabel}`
+              : `jogando ${modeLabel}`}
+          </div>
+
+          {!autoMark && connected && (
+            <p className="mb-3 text-center text-xs opacity-60">Toque nos números sorteados para marcar sua cartela.</p>
+          )}
+
+          {activeCard && (
+            <BingoCard
+              key={activeCard.cardId}
+              card={activeCard}
+              drawnNumbers={drawnNumbers}
+              autoMark={autoMark}
+              tappedNumbers={tappedByCard[activeCard.cardId] ?? new Set()}
+              onToggleTap={(n) => toggleTap(activeCard.cardId, n)}
+              highContrast={highContrast}
+              largeText={largeText}
+            />
+          )}
+        </div>
+
+        {(room?.settings.maxCardsPerPlayer ?? 1) > cards.length && (
+          <button
+            onClick={() => socket.emit('player:requestExtraCard', {})}
+            className="rounded-full px-4 py-2 text-sm font-bold"
+            style={{ background: 'rgba(32,27,59,.08)' }}
+          >
+            + cartela extra
+          </button>
+        )}
+
+        <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+          <button
+            onClick={() => {
+              const v = !largeText;
+              setLargeText(v);
+              localStorage.setItem('bingo:largeText', v ? '1' : '0');
+            }}
+            className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold shadow-sm"
+            style={{ color: '#8A7B4E' }}
+          >
+            fonte ampliada
+            <span className="relative rounded-full" style={{ width: 32, height: 18, background: largeText ? '#F5A623' : '#EADFC2' }}>
+              <span
+                className="absolute top-[2px] rounded-full bg-white transition-all"
+                style={{ width: 14, height: 14, left: largeText ? 16 : 2 }}
+              />
+            </span>
+          </button>
+          <button
+            onClick={() => {
+              const v = !highContrast;
+              setHighContrast(v);
+              localStorage.setItem('bingo:highContrast', v ? '1' : '0');
+            }}
+            className="rounded-full bg-white px-4 py-2 text-sm font-bold shadow-sm"
+            style={{ color: '#8A7B4E' }}
+          >
+            ◐ alto contraste
+          </button>
+          <button
+            onClick={() => {
+              localStorage.removeItem('bingo:playerId');
+              localStorage.removeItem('bingo:joinCode');
+              window.location.href = '/play';
+            }}
+            className="rounded-full bg-white px-4 py-2 text-sm font-bold shadow-sm"
+            style={{ color: '#8A7B4E' }}
+          >
+            sair da sala
+          </button>
+        </div>
       </div>
     </div>
   );

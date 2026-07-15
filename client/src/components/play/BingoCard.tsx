@@ -42,8 +42,8 @@ export function BingoCard({
   }
 
   return (
-    <div className="flex w-full max-w-sm flex-col gap-1.5">
-      <div className="grid grid-cols-5 gap-1.5">
+    <div className="flex w-full max-w-sm flex-col gap-2">
+      <div className="grid grid-cols-5 gap-2">
         {COLUMNS.map((l) => (
           <div key={l} className="text-center font-display text-[22px] font-extrabold" style={{ color: '#5C8DF2' }}>
             {l}
@@ -52,7 +52,7 @@ export function BingoCard({
       </div>
 
       {card.grid.map((row, ri) => (
-        <div key={ri} className="grid grid-cols-5 gap-1.5">
+        <div key={ri} className="grid grid-cols-5 gap-2">
           {row.map((cell, ci) => {
             const isMarked = cell === 'FREE' || (autoMark ? drawnNumbers.has(cell as number) : tappedNumbers.has(cell as number));
             const isShaking = shakingCell === cell;
@@ -61,13 +61,13 @@ export function BingoCard({
                 key={ci}
                 type="button"
                 onClick={() => handleClick(cell)}
-                className={`relative flex aspect-square items-center justify-center rounded-xl border-2 font-extrabold transition-colors ${
+                className={`relative flex aspect-square items-center justify-center rounded-2xl border font-extrabold shadow-[0_3px_8px_rgba(32,27,59,.1)] transition-colors ${
                   largeText ? 'text-xl' : 'text-[19px]'
                 } ${isShaking ? 'animate-shake' : ''}`}
                 style={{
                   background: isMarked ? (highContrast ? '#000' : '#201B3B') : '#fff',
                   color: isMarked ? '#fff' : '#201B3B',
-                  borderColor: isShaking ? '#FF4D5E' : isMarked ? (highContrast ? '#000' : '#201B3B') : '#EADFC2',
+                  borderColor: isShaking ? '#FF4D5E' : isMarked ? (highContrast ? '#000' : '#201B3B') : '#EFE7F6',
                 }}
               >
                 {isMarked && cell !== 'FREE' && (
