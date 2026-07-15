@@ -329,7 +329,7 @@ export function HostPage() {
   if (room.status === 'LOBBY') {
     return (
       <div
-        className="relative flex min-h-screen flex-col items-center overflow-hidden pb-52 text-white md:pb-64"
+        className="relative flex h-screen flex-col items-center justify-center gap-3 overflow-hidden px-6 pb-48 text-white md:gap-5 md:pb-36"
         style={{ background: 'linear-gradient(180deg,#3E6FD9 0%,#5C8DF2 38%,#10142A 74%)' }}
       >
         <CloudField />
@@ -343,17 +343,17 @@ export function HostPage() {
           ← sair
         </button>
 
-        <div className="z-10 mt-14">
-          <BingoAnthonyLogo width={340} />
+        <div className="z-10">
+          <BingoAnthonyLogo width={240} />
         </div>
 
-        <div className="z-10 mt-10 flex flex-wrap items-center justify-center gap-14 px-6">
-          <div className="flex flex-col items-center gap-4">
+        <div className="z-10 flex flex-wrap items-center justify-center gap-6 md:gap-10">
+          <div className="flex flex-col items-center gap-2">
             <QRJoin joinCode={joinCode!} />
           </div>
-          <div className="flex flex-col gap-3 text-center md:text-left">
+          <div className="flex flex-col gap-2 text-center md:text-left">
             <div className="text-sm font-bold uppercase tracking-[.08em] text-white/60">código da sala</div>
-            <div className="num font-display text-6xl font-extrabold tracking-[.06em] md:text-8xl">{joinCode}</div>
+            <div className="num font-display text-5xl font-extrabold tracking-[.06em] md:text-7xl">{joinCode}</div>
             <div className="flex items-baseline justify-center gap-3 md:justify-start">
               <div className="num font-display text-4xl font-extrabold text-bingoGold">
                 {players.filter((p) => p.connected).length}
@@ -361,9 +361,9 @@ export function HostPage() {
               <div className="font-bold text-white/65">jogadores na sala</div>
             </div>
           </div>
-          <div className="max-h-72 w-72 overflow-hidden rounded-[20px] bg-bingoNavyLight p-5">
+          <div className="max-h-40 w-72 overflow-hidden rounded-[20px] bg-bingoNavyLight p-4">
             <div className="text-sm font-bold uppercase tracking-[.06em] text-white/55">entrando agora</div>
-            <ul className="mt-2 max-h-56 overflow-y-auto">
+            <ul className="mt-2 max-h-24 overflow-y-auto">
               {players.map((p, i) => (
                 <li key={i} className="border-b border-white/10 py-1.5 font-bold">
                   {p.name}
@@ -373,7 +373,7 @@ export function HostPage() {
           </div>
         </div>
 
-        <div className="z-10 mt-8 flex flex-col items-center gap-4">
+        <div className="z-10 flex flex-col items-center gap-3">
           {!audioReady ? (
             <div className="w-full max-w-sm">
               <button
@@ -382,7 +382,7 @@ export function HostPage() {
                   setAudioFallback(bingoAudio.isFallback);
                   setAudioReady(true);
                 }}
-                className="w-full rounded-xl bg-bingoOrange px-6 py-4 font-display text-xl font-bold text-bingoInk hover:brightness-95"
+                className="w-full rounded-xl bg-bingoOrange px-6 py-3 font-display text-lg font-bold text-bingoInk hover:brightness-95"
               >
                 🔊 Ativar áudio e iniciar
               </button>
@@ -404,7 +404,7 @@ export function HostPage() {
               )}
               <button
                 onClick={() => socket.emit('host:startGame', {})}
-                className="rounded-xl bg-bingoWin px-8 py-4 font-display text-xl font-bold text-white hover:brightness-95"
+                className="rounded-xl bg-bingoWin px-8 py-3 font-display text-lg font-bold text-white hover:brightness-95"
               >
                 Iniciar Sorteio
               </button>
@@ -415,17 +415,17 @@ export function HostPage() {
         <img
           src="/mascots/mascot-1.png"
           alt=""
-          className="pointer-events-none absolute bottom-4 left-2 h-40 w-auto drop-shadow-[0_20px_24px_rgba(0,0,0,.4)] md:h-56"
+          className="pointer-events-none absolute bottom-2 left-2 h-24 w-auto drop-shadow-[0_20px_24px_rgba(0,0,0,.4)] md:h-32"
         />
         <img
           src="/mascots/mascot-2.png"
           alt=""
-          className="pointer-events-none absolute bottom-4 left-1/2 hidden h-48 w-auto -translate-x-1/2 drop-shadow-[0_20px_24px_rgba(0,0,0,.4)] md:block"
+          className="pointer-events-none absolute bottom-2 left-1/2 hidden h-28 w-auto -translate-x-1/2 drop-shadow-[0_20px_24px_rgba(0,0,0,.4)] md:block"
         />
         <img
           src="/mascots/mascot-3.png"
           alt=""
-          className="pointer-events-none absolute bottom-4 right-2 h-40 w-auto drop-shadow-[0_20px_24px_rgba(0,0,0,.4)] md:h-56"
+          className="pointer-events-none absolute bottom-2 right-2 h-24 w-auto drop-shadow-[0_20px_24px_rgba(0,0,0,.4)] md:h-32"
         />
       </div>
     );
