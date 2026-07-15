@@ -373,11 +373,6 @@ export function HostPage() {
           </div>
         </div>
 
-        <p className="z-10 mt-6 max-w-md text-center text-sm text-white/70">
-          Não precisa de cartela digital pra começar — dá pra jogar só com o sorteio automático e cartelas físicas de
-          papel. Quem quiser cartela no celular entra pelo QR acima.
-        </p>
-
         <div className="z-10 mt-8 flex flex-col items-center gap-4">
           {!audioReady ? (
             <div className="w-full max-w-sm">
