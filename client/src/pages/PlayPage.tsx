@@ -4,6 +4,7 @@ import { setupWakeLock } from '../lib/wakeLock';
 import type { Ball, Card, Phase, RoomPublicState } from '../lib/types';
 import { BingoCard } from '../components/play/BingoCard';
 import { WinOverlay } from '../components/play/WinOverlay';
+import { WelcomeSplash } from '../components/play/WelcomeSplash';
 import { ConnectionBanner } from '../components/play/ConnectionBanner';
 import { RibbonBanner, CloudField, Star } from '../components/decor/Sparkle';
 import { MODE_LABELS } from '../lib/modeLabels';
@@ -32,6 +33,7 @@ export function PlayPage() {
   const [joinCode, setJoinCode] = useState(joinCodeFromPath());
   const [name, setName] = useState(localStorage.getItem('bingo:playerName') ?? '');
   const [joined, setJoined] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [cards, setCards] = useState<Card[]>([]);
   const [activeCardIdx, setActiveCardIdx] = useState(0);
@@ -155,6 +157,7 @@ export function PlayPage() {
         localStorage.setItem('bingo:playerName', name);
         localStorage.setItem('bingo:joinCode', joinCode);
         setJoined(true);
+        setShowWelcome(true);
       } else {
         setError(res.error);
       }
@@ -220,6 +223,10 @@ export function PlayPage() {
         />
       </div>
     );
+  }
+
+  if (showWelcome) {
+    return <WelcomeSplash name={name} onDone={() => setShowWelcome(false)} />;
   }
 
   const currentPhase = room?.phases.find((p) => p.id === room.currentPhaseId);

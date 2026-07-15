@@ -127,7 +127,15 @@ export function SignatureBall({ letter, number, size }: { letter: string; number
 }
 
 /** Faixa/banner recortada em ponta, como usada no título "BINGO DO ANTHONY". */
-export function RibbonBanner({ children, fontSize = 46 }: { children: string; fontSize?: number }) {
+export function RibbonBanner({
+  children,
+  fontSize = 46,
+  wrap = false,
+}: {
+  children: string;
+  fontSize?: number;
+  wrap?: boolean;
+}) {
   return (
     <div
       style={{
@@ -136,11 +144,12 @@ export function RibbonBanner({ children, fontSize = 46 }: { children: string; fo
         borderRadius: 10,
         clipPath: 'polygon(0 0,100% 0,94% 50%,100% 100%,0 100%,6% 50%)',
         boxShadow: '0 18px 40px rgba(0,0,0,.4)',
+        maxWidth: wrap ? 320 : undefined,
       }}
     >
       <div
-        className="font-display whitespace-nowrap text-center text-white"
-        style={{ fontWeight: 800, fontSize }}
+        className={`font-display text-center text-white ${wrap ? '' : 'whitespace-nowrap'}`}
+        style={{ fontWeight: 800, fontSize, textWrap: wrap ? 'balance' : undefined }}
       >
         {children}
       </div>
