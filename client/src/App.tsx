@@ -6,7 +6,7 @@ import { LoginGate } from './components/auth/LoginGate';
 function LandingPage() {
   return (
     <div
-      className="relative flex min-h-screen flex-col items-center justify-center gap-8 overflow-hidden px-6 text-center text-white"
+      className="relative flex min-h-screen flex-col items-center justify-center gap-8 overflow-hidden px-6 pb-32 text-center text-white md:pb-56"
       style={{ background: 'linear-gradient(180deg,#3E6FD9 0%,#5C8DF2 38%,#10142A 74%)' }}
     >
       <CloudField />
