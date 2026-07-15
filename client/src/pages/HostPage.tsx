@@ -201,123 +201,148 @@ export function HostPage() {
   // --- Tela de criação de sala ---
   if (!room) {
     return (
-      <div className="min-h-screen bg-bingoNavy p-6 text-white md:p-10">
+      <div
+        className="relative min-h-screen overflow-hidden pb-28 text-white md:pb-16"
+        style={{ background: 'linear-gradient(180deg,#3E6FD9 0%,#5C8DF2 38%,#10142A 74%)' }}
+      >
+        <CloudField />
+        <Star top={20} left={300} size={20} />
+        <Star top={110} left={480} size={26} />
+
         <a
           href="/"
-          className="mb-4 inline-block rounded-lg bg-white/10 px-3 py-1.5 text-sm font-bold hover:bg-white/20"
+          className="fixed left-4 top-4 z-20 rounded-lg bg-white/10 px-3 py-1.5 text-sm font-bold hover:bg-white/20"
         >
           ← início
         </a>
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h1 className="font-display text-3xl font-extrabold text-bingoOrange">Painel de Sorteio</h1>
-            <p className="mt-1 text-white/60">
-              Configure as fases e crie a sala. Você pode jogar só com o sorteio automático — cartelas digitais são
-              opcionais, dá pra usar cartelas físicas de papel.
-            </p>
-          </div>
-          <AdminDrawer settings={draftSettings} onUpdateSettings={updateDraftSettings} />
-        </div>
-        {error && <p className="mt-2 rounded bg-red-900 p-2 text-red-200">{error}</p>}
 
-        <h2 className="mt-6 font-display text-xl font-bold">Fases</h2>
-        <div className="mt-2 space-y-3">
-          {phaseDrafts.map((phase, i) => (
-            <div key={i} className="rounded-lg bg-bingoNavyLight p-4">
-              <div className="flex flex-wrap gap-2">
-                {WIN_MODE_OPTIONS.map(({ mode, label }) => {
-                  const selected = phase.mode === mode;
-                  return (
-                    <button
-                      key={mode}
-                      onClick={() => {
+        <div className="relative z-10 mx-auto flex max-w-2xl flex-col items-center gap-5 px-6 py-10">
+          <BingoAnthonyLogo width={220} />
+
+          <div className="w-full rounded-3xl bg-bingoNavyLight/95 p-6 shadow-[0_20px_50px_rgba(0,0,0,.35)] backdrop-blur-sm md:p-8">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h1 className="font-display text-2xl font-extrabold text-bingoOrange">Painel de Sorteio</h1>
+                <p className="mt-1 text-white/60">
+                  Configure as fases e crie a sala. Você pode jogar só com o sorteio automático — cartelas digitais
+                  são opcionais, dá pra usar cartelas físicas de papel.
+                </p>
+              </div>
+              <AdminDrawer settings={draftSettings} onUpdateSettings={updateDraftSettings} />
+            </div>
+            {error && <p className="mt-2 rounded bg-red-900 p-2 text-red-200">{error}</p>}
+
+            <h2 className="mt-6 font-display text-xl font-bold">Fases</h2>
+            <div className="mt-2 space-y-3">
+              {phaseDrafts.map((phase, i) => (
+                <div key={i} className="rounded-lg bg-white/5 p-4">
+                  <div className="flex flex-wrap gap-2">
+                    {WIN_MODE_OPTIONS.map(({ mode, label }) => {
+                      const selected = phase.mode === mode;
+                      return (
+                        <button
+                          key={mode}
+                          onClick={() => {
+                            const next = [...phaseDrafts];
+                            next[i] = { ...next[i]!, mode };
+                            setPhaseDrafts(next);
+                          }}
+                          className="rounded-[9px] px-3.5 py-2 text-[15px] font-bold"
+                          style={{
+                            background: selected ? '#F5A623' : 'rgba(255,255,255,.06)',
+                            color: selected ? '#201B3B' : '#fff',
+                            border: `2px solid ${selected ? '#F5A623' : 'rgba(255,255,255,.15)'}`,
+                          }}
+                        >
+                          {label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="mt-3 flex items-center gap-2">
+                    <input
+                      value={phase.prizeLabel}
+                      placeholder="Nome do prêmio"
+                      onChange={(e) => {
                         const next = [...phaseDrafts];
-                        next[i] = { ...next[i]!, mode };
+                        next[i] = { ...next[i]!, prizeLabel: e.target.value };
                         setPhaseDrafts(next);
                       }}
-                      className="rounded-[9px] px-3.5 py-2 text-[15px] font-bold"
-                      style={{
-                        background: selected ? '#F5A623' : 'rgba(255,255,255,.06)',
-                        color: selected ? '#201B3B' : '#fff',
-                        border: `2px solid ${selected ? '#F5A623' : 'rgba(255,255,255,.15)'}`,
-                      }}
+                      className="flex-1 rounded bg-white/10 px-3 py-2"
+                    />
+                    <button
+                      onClick={() => setPhaseDrafts(phaseDrafts.filter((_, idx) => idx !== i))}
+                      className="text-white/50 hover:text-red-400"
                     >
-                      {label}
+                      remover
                     </button>
-                  );
-                })}
-              </div>
-              <div className="mt-3 flex items-center gap-2">
-                <input
-                  value={phase.prizeLabel}
-                  placeholder="Nome do prêmio"
-                  onChange={(e) => {
-                    const next = [...phaseDrafts];
-                    next[i] = { ...next[i]!, prizeLabel: e.target.value };
-                    setPhaseDrafts(next);
-                  }}
-                  className="flex-1 rounded bg-white/10 px-3 py-2"
-                />
-                <button
-                  onClick={() => setPhaseDrafts(phaseDrafts.filter((_, idx) => idx !== i))}
-                  className="text-white/50 hover:text-red-400"
-                >
-                  remover
-                </button>
-              </div>
-            </div>
-          ))}
-          <button
-            onClick={() => setPhaseDrafts([...phaseDrafts, { mode: 'QUINA', prizeLabel: '' }])}
-            className="rounded-lg bg-white/10 px-3 py-2 text-sm hover:bg-white/20"
-          >
-            + fase
-          </button>
-        </div>
-
-        <h2 className="mt-6 font-display text-xl font-bold">Como sortear</h2>
-        <div className="mt-2 flex flex-wrap gap-4 rounded-lg bg-bingoNavyLight p-4">
-          <div className="flex gap-2">
-            {(['AUTO', 'MANUAL'] as const).map((mode) => (
+                  </div>
+                </div>
+              ))}
               <button
-                key={mode}
-                onClick={() => updateDraftSettings({ drawMode: mode })}
-                className="rounded-[9px] px-4 py-2 text-[15px] font-bold"
-                style={{
-                  background: draftSettings.drawMode === mode ? '#F5A623' : 'rgba(255,255,255,.06)',
-                  color: draftSettings.drawMode === mode ? '#201B3B' : '#fff',
-                  border: `2px solid ${draftSettings.drawMode === mode ? '#F5A623' : 'rgba(255,255,255,.15)'}`,
-                }}
+                onClick={() => setPhaseDrafts([...phaseDrafts, { mode: 'QUINA', prizeLabel: '' }])}
+                className="rounded-lg bg-white/10 px-3 py-2 text-sm hover:bg-white/20"
               >
-                {mode === 'AUTO' ? 'Automático (sorteia sozinho)' : 'Manual (eu clico pra gerar cada número)'}
+                + fase
               </button>
-            ))}
-          </div>
-          {draftSettings.drawMode === 'AUTO' && (
-            <label className="flex items-center gap-2">
-              Intervalo (s):
-              <input
-                type="number"
-                min={3}
-                max={20}
-                value={draftSettings.intervalSeconds}
-                onChange={(e) => updateDraftSettings({ intervalSeconds: Number(e.target.value) })}
-                className="w-16 rounded bg-white/10 px-2 py-1"
-              />
-            </label>
-          )}
-        </div>
-        <p className="mt-2 text-sm text-white/50">
-          Use o botão ⚙️ Admin acima para ajustar marcação automática, voz, entrada tardia e as demais opções antes de
-          criar a sala.
-        </p>
+            </div>
 
-        <button
-          onClick={createRoom}
-          className="mt-6 rounded-xl bg-bingoOrange px-6 py-3 font-display text-lg font-bold text-bingoNavy hover:brightness-95"
-        >
-          Criar sala
-        </button>
+            <h2 className="mt-6 font-display text-xl font-bold">Como sortear</h2>
+            <div className="mt-2 flex flex-wrap gap-4 rounded-lg bg-white/5 p-4">
+              <div className="flex gap-2">
+                {(['AUTO', 'MANUAL'] as const).map((mode) => (
+                  <button
+                    key={mode}
+                    onClick={() => updateDraftSettings({ drawMode: mode })}
+                    className="rounded-[9px] px-4 py-2 text-[15px] font-bold"
+                    style={{
+                      background: draftSettings.drawMode === mode ? '#F5A623' : 'rgba(255,255,255,.06)',
+                      color: draftSettings.drawMode === mode ? '#201B3B' : '#fff',
+                      border: `2px solid ${draftSettings.drawMode === mode ? '#F5A623' : 'rgba(255,255,255,.15)'}`,
+                    }}
+                  >
+                    {mode === 'AUTO' ? 'Automático (sorteia sozinho)' : 'Manual (eu clico pra gerar cada número)'}
+                  </button>
+                ))}
+              </div>
+              {draftSettings.drawMode === 'AUTO' && (
+                <label className="flex items-center gap-2">
+                  Intervalo (s):
+                  <input
+                    type="number"
+                    min={3}
+                    max={20}
+                    value={draftSettings.intervalSeconds}
+                    onChange={(e) => updateDraftSettings({ intervalSeconds: Number(e.target.value) })}
+                    className="w-16 rounded bg-white/10 px-2 py-1"
+                  />
+                </label>
+              )}
+            </div>
+            <p className="mt-2 text-sm text-white/50">
+              Use o botão ⚙️ Admin acima para ajustar marcação automática, voz, entrada tardia e as demais opções
+              antes de criar a sala.
+            </p>
+
+            <button
+              onClick={createRoom}
+              className="mt-6 rounded-xl bg-bingoOrange px-6 py-3 font-display text-lg font-bold text-bingoNavy hover:brightness-95"
+            >
+              Criar sala
+            </button>
+          </div>
+        </div>
+
+        <img
+          src="/mascots/mascot-1.png"
+          alt=""
+          className="pointer-events-none absolute bottom-2 left-2 hidden h-28 w-auto drop-shadow-[0_20px_24px_rgba(0,0,0,.4)] lg:block"
+        />
+        <img
+          src="/mascots/mascot-3.png"
+          alt=""
+          className="pointer-events-none absolute bottom-2 right-2 hidden h-28 w-auto drop-shadow-[0_20px_24px_rgba(0,0,0,.4)] lg:block"
+        />
       </div>
     );
   }
