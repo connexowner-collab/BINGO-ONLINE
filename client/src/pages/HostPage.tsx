@@ -346,7 +346,7 @@ export function HostPage() {
         </button>
 
         <div className="z-10 mt-14">
-          <RibbonBanner>{EVENT_TITLE}</RibbonBanner>
+          <RibbonBanner variant="toy">{EVENT_TITLE}</RibbonBanner>
         </div>
 
         <div className="z-10 mt-10 flex flex-wrap items-center justify-center gap-14 px-6">

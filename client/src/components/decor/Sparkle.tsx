@@ -126,20 +126,27 @@ export function SignatureBall({ letter, number, size }: { letter: string; number
   );
 }
 
-/** Faixa/banner recortada em ponta, como usada no título "BINGO DO ANTHONY". */
+/**
+ * Faixa/banner recortada em ponta, como usada no título "BINGO DO ANTHONY".
+ * `variant="toy"` imita o logo de brinquedo enviado como referência (letras
+ * amarelas com contorno grosso azul + sombra, sobre uma faixa vermelha).
+ */
 export function RibbonBanner({
   children,
   fontSize = 46,
   wrap = false,
+  variant = 'default',
 }: {
   children: string;
   fontSize?: number;
   wrap?: boolean;
+  variant?: 'default' | 'toy';
 }) {
+  const isToy = variant === 'toy';
   return (
     <div
       style={{
-        background: '#5C8DF2',
+        background: isToy ? '#D93B2B' : '#5C8DF2',
         padding: '18px 40px 22px',
         borderRadius: 10,
         clipPath: 'polygon(0 0,100% 0,94% 50%,100% 100%,0 100%,6% 50%)',
@@ -148,8 +155,20 @@ export function RibbonBanner({
       }}
     >
       <div
-        className={`font-display text-center text-white ${wrap ? '' : 'whitespace-nowrap'}`}
-        style={{ fontWeight: 800, fontSize, textWrap: wrap ? 'balance' : undefined }}
+        className={`font-display text-center ${wrap ? '' : 'whitespace-nowrap'} ${isToy ? '' : 'text-white'}`}
+        style={{
+          fontWeight: 800,
+          fontSize,
+          textWrap: wrap ? 'balance' : undefined,
+          ...(isToy
+            ? {
+                color: '#FFD23F',
+                WebkitTextStroke: `${Math.max(2, fontSize * 0.06)}px #1E4FA0`,
+                paintOrder: 'stroke fill',
+                textShadow: '0 4px 0 rgba(0,0,0,.3)',
+              }
+            : {}),
+        }}
       >
         {children}
       </div>

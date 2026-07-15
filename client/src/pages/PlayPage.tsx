@@ -185,7 +185,7 @@ export function PlayPage() {
         <Star top={64} left={40} size={18} opacity={0.6} color="#F5A623" />
         <Star top={130} right={40} size={14} opacity={0.5} color="#F5A623" />
 
-        <RibbonBanner fontSize={26}>{EVENT_TITLE}</RibbonBanner>
+        <RibbonBanner fontSize={26} variant="toy">{EVENT_TITLE}</RibbonBanner>
 
         {error && <p className="rounded bg-red-900 px-3 py-2 text-sm text-red-100">{error}</p>}
 
@@ -271,15 +271,7 @@ export function PlayPage() {
       )}
 
       <div className="relative z-10 flex flex-col items-center gap-3.5 px-4 pb-8 pt-6">
-        {/* Provisório: estilo colorido tipo logo de brinquedo — ajusto assim que
-            você mandar a referência do "Anthony" que combinou. */}
-        <h1 className="font-display text-4xl font-extrabold tracking-wide">
-          {['A', 'n', 't', 'h', 'o', 'n', 'y'].map((ch, i) => (
-            <span key={i} style={{ color: ['#E8433D', '#F5A623', '#3E6FD9'][i % 3] }}>
-              {ch}
-            </span>
-          ))}
-        </h1>
+        <RibbonBanner fontSize={30} variant="toy">Anthony</RibbonBanner>
 
         <ConnectionBanner connected={connected} />
 
@@ -302,8 +294,8 @@ export function PlayPage() {
         )}
 
         <div
-          className="w-full max-w-sm rounded-[28px] bg-white p-5 shadow-[0_20px_45px_rgba(32,27,59,.3)]"
-          style={{ opacity: connected ? 1 : 0.5 }}
+          className="w-full max-w-sm rounded-[28px] p-5 shadow-[0_20px_45px_rgba(32,27,59,.3)] backdrop-blur-sm"
+          style={{ opacity: connected ? 1 : 0.5, backgroundColor: 'rgba(255,255,255,.88)' }}
         >
           <div className="mb-4 flex items-center justify-between gap-2">
             <div

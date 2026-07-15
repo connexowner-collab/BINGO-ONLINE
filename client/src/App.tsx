@@ -16,7 +16,7 @@ function LandingPage() {
       <Star top={110} left={480} size={26} />
       <Star top={90} right={140} size={18} />
 
-      <RibbonBanner>{EVENT_TITLE}</RibbonBanner>
+      <RibbonBanner variant="toy">{EVENT_TITLE}</RibbonBanner>
 
       <a
         href="/host"

@@ -29,6 +29,9 @@ export function BingoCard({
   largeText: boolean;
 }) {
   const [shakingCell, setShakingCell] = useState<number | null>(null);
+  // Ao marcar um número (não ao desmarcar), o personagem aparece grande por um
+  // instante — igual ao espaço livre — antes de encolher pro cantinho.
+  const [poppingCell, setPoppingCell] = useState<number | null>(null);
   const freeMascot = mascotForCard(card.cardId);
 
   function handleClick(cell: number | 'FREE') {
@@ -38,7 +41,12 @@ export function BingoCard({
       setTimeout(() => setShakingCell((c) => (c === cell ? null : c)), 400);
       return;
     }
+    const wasMarked = tappedNumbers.has(cell);
     onToggleTap(cell);
+    if (!wasMarked) {
+      setPoppingCell(cell);
+      setTimeout(() => setPoppingCell((c) => (c === cell ? null : c)), 700);
+    }
   }
 
   return (
@@ -56,6 +64,7 @@ export function BingoCard({
           {row.map((cell, ci) => {
             const isMarked = cell === 'FREE' || (autoMark ? drawnNumbers.has(cell as number) : tappedNumbers.has(cell as number));
             const isShaking = shakingCell === cell;
+            const isPopping = poppingCell === cell;
             return (
               <button
                 key={ci}
@@ -70,7 +79,7 @@ export function BingoCard({
                   borderColor: isShaking ? '#FF4D5E' : isMarked ? (highContrast ? '#000' : '#201B3B') : '#EFE7F6',
                 }}
               >
-                {isMarked && cell !== 'FREE' && (
+                {isMarked && cell !== 'FREE' && !isPopping && (
                   <span
                     className="absolute rounded-full"
                     style={{ width: '70%', height: '70%', background: '#F5A623', opacity: 0.35 }}
@@ -78,8 +87,19 @@ export function BingoCard({
                 )}
                 {cell === 'FREE' ? (
                   <img src={freeMascot} alt="Espaço livre" className="relative z-10 h-full w-full object-contain p-1" />
+                ) : isPopping ? (
+                  <img src={freeMascot} alt="" className="relative z-10 h-full w-full animate-pop-in object-contain p-1.5" />
                 ) : (
-                  <span className="relative z-10">{isMarked ? `✓${cell}` : cell}</span>
+                  <>
+                    <span className="relative z-10">{cell}</span>
+                    {isMarked && (
+                      <img
+                        src={freeMascot}
+                        alt=""
+                        className="absolute right-0.5 top-0.5 z-10 h-4 w-4 rounded-full border border-white/70 object-cover"
+                      />
+                    )}
+                  </>
                 )}
               </button>
             );
