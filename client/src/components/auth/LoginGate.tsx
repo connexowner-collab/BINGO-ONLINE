@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { login, verifyStoredToken } from '../../lib/auth';
-import { Cloud, RibbonBanner, Star } from '../decor/Sparkle';
+import { CloudField, RibbonBanner, Star } from '../decor/Sparkle';
 
 /**
  * Protege a tela inicial e o /host com uma senha única do site (evento
@@ -44,8 +44,7 @@ export function LoginGate({ children }: { children: React.ReactNode }) {
       className="relative flex min-h-screen flex-col items-center justify-center gap-6 overflow-hidden px-6 text-center text-white"
       style={{ background: 'linear-gradient(180deg,#3E6FD9 0%,#5C8DF2 38%,#10142A 74%)' }}
     >
-      <Cloud top={30} left={-60} width={340} height={110} opacity={0.85} />
-      <Cloud top={180} right={-80} width={300} height={100} opacity={0.7} />
+      <CloudField />
       <Star top={20} left={300} size={20} />
       <Star top={110} left={480} size={26} />
 

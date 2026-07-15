@@ -1,6 +1,6 @@
 import { HostPage } from './pages/HostPage';
 import { PlayPage } from './pages/PlayPage';
-import { Cloud, RibbonBanner, Star } from './components/decor/Sparkle';
+import { CloudField, RibbonBanner, Star } from './components/decor/Sparkle';
 import { LoginGate } from './components/auth/LoginGate';
 
 const EVENT_TITLE = 'BINGO DO ANTHONY';
@@ -11,8 +11,7 @@ function LandingPage() {
       className="relative flex min-h-screen flex-col items-center justify-center gap-8 overflow-hidden px-6 text-center text-white"
       style={{ background: 'linear-gradient(180deg,#3E6FD9 0%,#5C8DF2 38%,#10142A 74%)' }}
     >
-      <Cloud top={30} left={-60} width={340} height={110} opacity={0.85} />
-      <Cloud top={180} right={-80} width={300} height={100} opacity={0.7} />
+      <CloudField />
       <Star top={20} left={300} size={20} />
       <Star top={110} left={480} size={26} />
       <Star top={90} right={140} size={18} />

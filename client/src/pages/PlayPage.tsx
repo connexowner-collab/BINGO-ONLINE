@@ -5,7 +5,7 @@ import type { Ball, Card, Phase, RoomPublicState } from '../lib/types';
 import { BingoCard } from '../components/play/BingoCard';
 import { WinOverlay } from '../components/play/WinOverlay';
 import { ConnectionBanner } from '../components/play/ConnectionBanner';
-import { RibbonBanner, Cloud, Star } from '../components/decor/Sparkle';
+import { RibbonBanner, CloudField, Star } from '../components/decor/Sparkle';
 import { MODE_LABELS } from '../lib/modeLabels';
 
 const EVENT_TITLE = 'BINGO DO ANTHONY';
@@ -178,8 +178,7 @@ export function PlayPage() {
         className="relative flex min-h-screen flex-col items-center justify-center gap-7 overflow-hidden px-8 text-center"
         style={{ background: 'linear-gradient(180deg,#5C8DF2 0%,#A9C6F7 30%,#FFF8EA 55%)' }}
       >
-        <Cloud top={40} left={-40} width={220} height={70} opacity={0.85} />
-        <Cloud top={100} right={-50} width={190} height={64} opacity={0.7} />
+        <CloudField />
         <Star top={64} left={40} size={18} opacity={0.6} color="#F5A623" />
         <Star top={130} right={40} size={14} opacity={0.5} color="#F5A623" />
 

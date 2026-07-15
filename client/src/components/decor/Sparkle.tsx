@@ -70,6 +70,34 @@ export function Cloud({
   );
 }
 
+type CloudSpec = { top: number; left?: number; right?: number; width: number; height: number; opacity?: number };
+
+// Céu com várias nuvens espalhadas (em vez de só 2 cantos) — mistura de
+// tamanhos/opacidades pra dar profundidade, como no papel de parede de
+// referência. Usado em todas as telas com fundo azul do documento de
+// identidade visual.
+const CLOUD_FIELD: CloudSpec[] = [
+  { top: 10, left: -60, width: 340, height: 110, opacity: 0.85 },
+  { top: 30, right: -70, width: 300, height: 100, opacity: 0.75 },
+  { top: 130, left: 60, width: 170, height: 56, opacity: 0.5 },
+  { top: 170, right: 90, width: 190, height: 62, opacity: 0.45 },
+  { top: 250, left: -40, width: 220, height: 72, opacity: 0.55 },
+  { top: 300, right: -50, width: 240, height: 78, opacity: 0.5 },
+  { top: 380, left: 220, width: 150, height: 50, opacity: 0.35 },
+  { top: 420, right: 200, width: 160, height: 52, opacity: 0.3 },
+];
+
+/** Espalha várias <Cloud> pelo fundo azul da tela em vez de só duas nos cantos. */
+export function CloudField() {
+  return (
+    <>
+      {CLOUD_FIELD.map((c, i) => (
+        <Cloud key={i} {...c} />
+      ))}
+    </>
+  );
+}
+
 /** Bola sorteada como "objeto físico": gradiente radial + brilho de topo + sombra projetada. */
 export function SignatureBall({ letter, number, size }: { letter: string; number: number; size: number }) {
   return (

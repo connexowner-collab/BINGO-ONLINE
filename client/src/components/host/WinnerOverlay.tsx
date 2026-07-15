@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import confetti from 'canvas-confetti';
 import { motion } from 'framer-motion';
 import type { Card, Phase } from '../../lib/types';
-import { Cloud } from '../decor/Sparkle';
+import { CloudField } from '../decor/Sparkle';
 import { MiniCardGrid } from '../decor/MiniCardGrid';
 import { MODE_LABELS } from '../../lib/modeLabels';
 
@@ -49,8 +49,7 @@ export function WinnerOverlay({
       className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-5 overflow-hidden text-center text-white"
       style={{ background: 'linear-gradient(180deg,#5C8DF2 0%,#3E6FD9 22%,#201B3B 50%)' }}
     >
-      <Cloud top={20} left={-60} width={300} height={96} opacity={0.7} />
-      <Cloud top={70} right={-70} width={260} height={86} opacity={0.55} />
+      <CloudField />
 
       <img
         src="/mascots/mascot-1.png"

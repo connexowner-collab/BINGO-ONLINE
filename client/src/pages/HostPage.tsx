@@ -9,7 +9,7 @@ import { NearWinPanel } from '../components/host/NearWinPanel';
 import { WinnerOverlay } from '../components/host/WinnerOverlay';
 import { QRJoin } from '../components/host/QRJoin';
 import { AdminDrawer } from '../components/host/AdminDrawer';
-import { Cloud, RibbonBanner, Star } from '../components/decor/Sparkle';
+import { CloudField, RibbonBanner, Star } from '../components/decor/Sparkle';
 
 const EVENT_TITLE = 'BINGO DO ANTHONY';
 
@@ -334,8 +334,7 @@ export function HostPage() {
         className="relative flex min-h-screen flex-col items-center overflow-hidden text-white"
         style={{ background: 'linear-gradient(180deg,#3E6FD9 0%,#5C8DF2 38%,#10142A 74%)' }}
       >
-        <Cloud top={30} left={-60} width={340} height={110} opacity={0.85} />
-        <Cloud top={180} right={-80} width={300} height={100} opacity={0.7} />
+        <CloudField />
         <Star top={20} left={300} size={20} />
         <Star top={110} left={480} size={26} />
 
@@ -548,8 +547,7 @@ export function HostPage() {
         />
       )}
 
-      <Cloud top={14} left={-60} width={300} height={96} opacity={0.7} />
-      <Cloud top={60} right={-70} width={260} height={86} opacity={0.55} />
+      <CloudField />
 
       <header className="relative z-10 flex flex-wrap items-center justify-between gap-2 px-6 pt-6 md:px-10">
         <div className="flex items-center gap-3">
