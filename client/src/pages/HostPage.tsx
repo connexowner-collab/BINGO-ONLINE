@@ -329,7 +329,7 @@ export function HostPage() {
   if (room.status === 'LOBBY') {
     return (
       <div
-        className="relative flex min-h-screen flex-col items-center overflow-hidden text-white"
+        className="relative flex min-h-screen flex-col items-center overflow-hidden pb-52 text-white md:pb-64"
         style={{ background: 'linear-gradient(180deg,#3E6FD9 0%,#5C8DF2 38%,#10142A 74%)' }}
       >
         <CloudField />
