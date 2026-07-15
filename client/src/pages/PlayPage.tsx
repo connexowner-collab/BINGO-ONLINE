@@ -6,10 +6,8 @@ import { BingoCard } from '../components/play/BingoCard';
 import { WinOverlay } from '../components/play/WinOverlay';
 import { WelcomeSplash } from '../components/play/WelcomeSplash';
 import { ConnectionBanner } from '../components/play/ConnectionBanner';
-import { RibbonBanner, CloudField, Star } from '../components/decor/Sparkle';
+import { BingoAnthonyLogo, CloudField, Star } from '../components/decor/Sparkle';
 import { MODE_LABELS } from '../lib/modeLabels';
-
-const EVENT_TITLE = 'BINGO DO ANTHONY';
 
 function joinCodeFromPath(): string {
   const parts = window.location.pathname.split('/').filter(Boolean);
@@ -185,7 +183,7 @@ export function PlayPage() {
         <Star top={64} left={40} size={18} opacity={0.6} color="#F5A623" />
         <Star top={130} right={40} size={14} opacity={0.5} color="#F5A623" />
 
-        <RibbonBanner fontSize={26} variant="toy">{EVENT_TITLE}</RibbonBanner>
+        <BingoAnthonyLogo width={260} />
 
         {error && <p className="rounded bg-red-900 px-3 py-2 text-sm text-red-100">{error}</p>}
 
@@ -271,7 +269,7 @@ export function PlayPage() {
       )}
 
       <div className="relative z-10 flex flex-col items-center gap-3.5 px-4 pb-8 pt-6">
-        <RibbonBanner fontSize={30} variant="toy">Anthony</RibbonBanner>
+        <BingoAnthonyLogo width={220} />
 
         <ConnectionBanner connected={connected} />
 

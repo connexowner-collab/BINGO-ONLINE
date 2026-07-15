@@ -9,9 +9,7 @@ import { NearWinPanel } from '../components/host/NearWinPanel';
 import { WinnerOverlay } from '../components/host/WinnerOverlay';
 import { QRJoin } from '../components/host/QRJoin';
 import { AdminDrawer } from '../components/host/AdminDrawer';
-import { CloudField, RibbonBanner, Star } from '../components/decor/Sparkle';
-
-const EVENT_TITLE = 'BINGO DO ANTHONY';
+import { BingoAnthonyLogo, CloudField, Star } from '../components/decor/Sparkle';
 
 type PhaseDraft = { mode: WinMode; prizeLabel: string };
 type ConnectedPlayer = { name: string; connected: boolean };
@@ -346,7 +344,7 @@ export function HostPage() {
         </button>
 
         <div className="z-10 mt-14">
-          <RibbonBanner variant="toy">{EVENT_TITLE}</RibbonBanner>
+          <BingoAnthonyLogo width={340} />
         </div>
 
         <div className="z-10 mt-10 flex flex-wrap items-center justify-center gap-14 px-6">

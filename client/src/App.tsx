@@ -1,9 +1,7 @@
 import { HostPage } from './pages/HostPage';
 import { PlayPage } from './pages/PlayPage';
-import { CloudField, RibbonBanner, Star } from './components/decor/Sparkle';
+import { BingoAnthonyLogo, CloudField, Star } from './components/decor/Sparkle';
 import { LoginGate } from './components/auth/LoginGate';
-
-const EVENT_TITLE = 'BINGO DO ANTHONY';
 
 function LandingPage() {
   return (
@@ -16,7 +14,7 @@ function LandingPage() {
       <Star top={110} left={480} size={26} />
       <Star top={90} right={140} size={18} />
 
-      <RibbonBanner variant="toy">{EVENT_TITLE}</RibbonBanner>
+      <BingoAnthonyLogo width={340} />
 
       <a
         href="/host"
