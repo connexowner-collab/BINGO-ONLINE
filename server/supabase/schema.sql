@@ -47,3 +47,19 @@ create index if not exists cards_room_id_idx on cards(room_id);
 alter table rooms enable row level security;
 alter table cards enable row level security;
 alter table ball_draws enable row level security;
+
+-- Confirmação de presença do chá de bebê (feature separada do bingo).
+create table if not exists rsvp_responses (
+  id bigint generated always as identity primary key,
+  guest_name text not null,
+  attending boolean not null,
+  has_companions boolean not null default false,
+  adults_count int not null default 0,
+  children_count int not null default 0,
+  companion_names text not null default '',
+  created_at timestamptz not null default now()
+);
+
+create index if not exists rsvp_responses_attending_idx on rsvp_responses(attending);
+
+alter table rsvp_responses enable row level security;

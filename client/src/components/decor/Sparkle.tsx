@@ -109,6 +109,17 @@ export function BingoAnthonyLogo({ width = 320 }: { width?: number }) {
   );
 }
 
+/** Logo "Anthony" em blocos de brinquedo, usado nas telas de confirmação de presença (não é bingo). */
+export function AnthonyBlocksLogo({ width = 280 }: { width?: number }) {
+  return (
+    <img
+      src="/logo-anthony-blocks.png"
+      alt="Anthony"
+      style={{ width, height: 'auto', filter: 'drop-shadow(0 14px 28px rgba(0,0,0,.4))' }}
+    />
+  );
+}
+
 /** Bola sorteada como "objeto físico": gradiente radial + brilho de topo + sombra projetada. */
 export function SignatureBall({ letter, number, size }: { letter: string; number: number; size: number }) {
   return (

@@ -1,5 +1,7 @@
 import { HostPage } from './pages/HostPage';
 import { PlayPage } from './pages/PlayPage';
+import { RsvpPage } from './pages/RsvpPage';
+import { RsvpAdminPage } from './pages/RsvpAdminPage';
 import { BingoAnthonyLogo, CloudField, Star } from './components/decor/Sparkle';
 import { LoginGate } from './components/auth/LoginGate';
 
@@ -16,12 +18,20 @@ function LandingPage() {
 
       <BingoAnthonyLogo width={340} />
 
-      <a
-        href="/host"
-        className="w-64 rounded-xl bg-bingoOrange px-6 py-4 font-display text-lg font-extrabold text-bingoInk hover:brightness-95"
-      >
-        🎙 Painel de sorteio
-      </a>
+      <div className="flex flex-col gap-3">
+        <a
+          href="/host"
+          className="w-64 rounded-xl bg-bingoOrange px-6 py-4 font-display text-lg font-extrabold text-bingoInk hover:brightness-95"
+        >
+          🎙 Painel de sorteio
+        </a>
+        <a
+          href="/convite/painel"
+          className="w-64 rounded-xl bg-white/10 px-6 py-3 text-center text-sm font-bold hover:bg-white/20"
+        >
+          💌 Confirmações do chá
+        </a>
+      </div>
 
       <img
         src="/mascots/mascot-1.png"
@@ -48,6 +58,16 @@ export function App() {
   // Jogadores entram direto pelo QR (/play/<joinCode>) — não passam pela
   // senha do site, que só protege a tela inicial e o painel de sorteio.
   if (path.startsWith('/play')) return <PlayPage />;
+  // Convidados confirmam presença por um link direto, sem senha — só o
+  // painel de acompanhamento (/convite/painel) fica protegido.
+  if (path.startsWith('/convite/painel')) {
+    return (
+      <LoginGate>
+        <RsvpAdminPage />
+      </LoginGate>
+    );
+  }
+  if (path.startsWith('/convite')) return <RsvpPage />;
   if (path.startsWith('/host')) {
     return (
       <LoginGate>

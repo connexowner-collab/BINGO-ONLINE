@@ -18,6 +18,7 @@ import { RoomEngine } from './game/engine.js';
 import { roomManager } from './roomManager.js';
 import { loadActiveRooms } from './db/repository.js';
 import { checkPassword, issueToken, verifyToken } from './auth.js';
+import { getRsvpSummary, listRsvpResponses, rsvpSubmitSchema, saveRsvpResponse } from './rsvp.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT ?? 3001);
@@ -50,6 +51,47 @@ app.post('/auth/login', (req, res) => {
 app.post('/auth/verify', (req, res) => {
   const token = typeof req.body?.token === 'string' ? req.body.token : '';
   res.json({ ok: token.length > 0 && verifyToken(token) });
+});
+
+// Confirmação de presença do chá de bebê: /rsvp (submissão) é público, sem
+// senha — o convidado recebe o link direto, antes de conhecer qualquer
+// senha. As rotas de leitura (resumo/lista) exigem o mesmo token de sessão
+// do /host, então só quem tem a senha do site vê os dados dos convidados.
+app.use('/rsvp', (req, res, next) => {
+  res.header('Access-Control-Allow-Origin', CLIENT_ORIGIN);
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') return void res.sendStatus(204);
+  next();
+});
+
+function requireAuthToken(req: express.Request, res: express.Response): boolean {
+  const header = req.header('Authorization') ?? '';
+  const token = header.startsWith('Bearer ') ? header.slice('Bearer '.length) : '';
+  if (!token || !verifyToken(token)) {
+    res.status(401).json({ ok: false, error: 'NAO_AUTORIZADO' });
+    return false;
+  }
+  return true;
+}
+
+app.post('/rsvp', async (req, res) => {
+  const parsed = rsvpSubmitSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ ok: false, error: 'PAYLOAD_INVALIDO' });
+  }
+  const result = await saveRsvpResponse(parsed.data);
+  res.status(result.ok ? 200 : 500).json(result);
+});
+
+app.get('/rsvp/summary', async (req, res) => {
+  if (!requireAuthToken(req, res)) return;
+  res.json({ ok: true, summary: await getRsvpSummary() });
+});
+
+app.get('/rsvp/list', async (req, res) => {
+  if (!requireAuthToken(req, res)) return;
+  res.json({ ok: true, responses: await listRsvpResponses() });
 });
 
 // Modo "evento local" (seção "sem custo de nuvem"): se o client já foi
