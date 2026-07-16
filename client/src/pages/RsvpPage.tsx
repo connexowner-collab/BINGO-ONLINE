@@ -30,6 +30,17 @@ function Screen({ children }: { children: React.ReactNode }) {
   );
 }
 
+function EventHeader({ logoWidth }: { logoWidth: number }) {
+  return (
+    <div className="flex flex-col items-center gap-1">
+      <p className="font-display text-lg font-bold uppercase tracking-wide" style={{ color: '#3E6FD9' }}>
+        Chá de bebê do
+      </p>
+      <AnthonyBlocksLogo width={logoWidth} />
+    </div>
+  );
+}
+
 function Stepper({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
   return (
     <div className="flex w-full items-center justify-between rounded-2xl border-2 bg-white px-5 py-3" style={{ borderColor: '#EADFC2' }}>
@@ -38,7 +49,7 @@ function Stepper({ label, value, onChange }: { label: string; value: number; onC
         <button
           type="button"
           onClick={() => onChange(Math.max(0, value - 1))}
-          className="flex h-8 w-8 items-center justify-center rounded-full text-xl font-extrabold text-white"
+          className="flex h-10 w-10 items-center justify-center rounded-full text-xl font-extrabold text-white"
           style={{ background: '#5C8DF2' }}
         >
           −
@@ -47,7 +58,7 @@ function Stepper({ label, value, onChange }: { label: string; value: number; onC
         <button
           type="button"
           onClick={() => onChange(value + 1)}
-          className="flex h-8 w-8 items-center justify-center rounded-full text-xl font-extrabold text-white"
+          className="flex h-10 w-10 items-center justify-center rounded-full text-xl font-extrabold text-white"
           style={{ background: '#F5A623' }}
         >
           +
@@ -111,7 +122,7 @@ export function RsvpPage() {
   if (step === 'thanks-no') {
     return (
       <Screen>
-        <AnthonyBlocksLogo width={240} />
+        <EventHeader logoWidth={240} />
         <p className="text-xl font-bold">Que pena, {guestName || 'amigo(a)'}! Sentiremos sua falta. 💙</p>
         <p className="text-sm opacity-70">Obrigado por avisar — sua resposta já foi registrada.</p>
       </Screen>
@@ -121,7 +132,7 @@ export function RsvpPage() {
   if (step === 'thanks-yes') {
     return (
       <Screen>
-        <AnthonyBlocksLogo width={240} />
+        <EventHeader logoWidth={240} />
         <p className="text-xl font-bold">Confirmadíssimo, {guestName}! 🎉</p>
         <p className="text-sm opacity-70">Nos vemos no chá de bebê do Anthony. Obrigado por confirmar!</p>
       </Screen>
@@ -131,7 +142,7 @@ export function RsvpPage() {
   if (step === 'companions') {
     return (
       <Screen>
-        <AnthonyBlocksLogo width={220} />
+        <EventHeader logoWidth={220} />
         <h1 className="font-display text-2xl font-extrabold">Vai ter acompanhante?</h1>
 
         <div className="flex w-full gap-3">
@@ -158,7 +169,7 @@ export function RsvpPage() {
   if (step === 'companions-form') {
     return (
       <Screen>
-        <AnthonyBlocksLogo width={200} />
+        <EventHeader logoWidth={200} />
         <h1 className="font-display text-xl font-extrabold">Quem vem com você?</h1>
 
         <Stepper label="Adultos" value={adultsCount} onChange={setAdultsCount} />
@@ -188,9 +199,9 @@ export function RsvpPage() {
 
   return (
     <Screen>
-      <AnthonyBlocksLogo width={260} />
+      <EventHeader logoWidth={260} />
       <h1 className="font-display text-2xl font-extrabold">Confirme sua presença</h1>
-      <p className="text-sm opacity-70">Chá de bebê do Anthony — conta pra gente se você vem!</p>
+      <p className="text-sm opacity-70">Conta pra gente se você vem!</p>
 
       <input
         value={guestName}
